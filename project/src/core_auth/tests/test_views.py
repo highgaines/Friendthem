@@ -47,3 +47,18 @@ class RegisterUserViewTests(APITestCase):
 
         assert 400 == response.status_code
         assert 0 == User.objects.count()
+
+    def test_raises_400_if_user_already_exists(self):
+        mommy.make(User, email='xpto@example.com')
+        data = {
+            'client_id': 'invalid id',
+            'client_secret': 'invalid secret',
+            'grant_type': 'invalid grant',
+            'username': 'xpto@example.com',
+            'password': '123456',
+        }
+        response = self.client.post(self.url, data)
+        content = response.json()
+
+        assert 400 == response.status_code
+        assert 1 == User.objects.count()

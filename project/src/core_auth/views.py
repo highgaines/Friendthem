@@ -1,5 +1,7 @@
 import json
+
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
@@ -25,7 +27,7 @@ class RegisterUserView(OAuthLibMixin, CreateAPIView):
         for key, value in request.data.items():
             request._request.POST[key] = value
 
-        user = super(RegisterUserView, self).create(request, *args, **kwargs)
+        super(RegisterUserView, self).create(request, *args, **kwargs)
         url, headers, body, status = self.create_token_response(request._request)
         response = Response(data=json.loads(body), status=status)
 
@@ -40,6 +42,14 @@ class UserDetailView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+def redirect_user_to_app(request):
+    location = 'FriendThem://'
+    response = HttpResponse('', status=302)
+    response['Location'] = location
+
+    return response
+
 
 register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()

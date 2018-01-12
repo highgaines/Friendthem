@@ -84,3 +84,9 @@ class UserDetailViewTests(APITestCase):
         assert self.user.email == content['email']
         assert self.user.id == content['id']
 
+
+class RedirectToAppViewTests(APITestCase):
+    def test_view_redirects_to_app(self):
+        response = self.client.get(reverse('auth:redirect_to_app'))
+        assert 302 == response.status_code
+        assert 'FriendThem://' == response['Location']

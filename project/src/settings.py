@@ -157,6 +157,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details'
 )
 
+LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'
+
 SOCIAL_AUTH_FACEBOOK_KEY = '593750164289317'
 SOCIAL_AUTH_FACEBOOK_SECRET = '6cd1be0a9c268d81a984f44059229014'
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']

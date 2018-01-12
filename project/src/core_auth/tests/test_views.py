@@ -84,6 +84,7 @@ class UserDetailViewTests(APITestCase):
         assert self.user.email == content['email']
         assert self.user.id == content['id']
 
+
 class TokensViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
@@ -199,6 +200,7 @@ class TokensViewTests(APITestCase):
             'auth_time': 123456,
             'expires': 123124,
         } == content
+
 
 class RedirectToAppViewTests(APITestCase):
     def test_view_redirects_to_app(self):

@@ -14,6 +14,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from src.core_auth.serializers import UserSerializer, TokenSerializer
 
+
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
     model = get_user_model()
     permission_classes = [AllowAny]
@@ -37,6 +38,7 @@ class RegisterUserView(OAuthLibMixin, CreateAPIView):
 
         return response
 
+
 class UserDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
@@ -53,6 +55,7 @@ class TokensViewSet(ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.social_auth.all()
+
 
 def redirect_user_to_app(request):
     location = 'FriendThem://'

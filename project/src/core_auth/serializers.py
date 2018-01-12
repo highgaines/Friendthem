@@ -5,10 +5,11 @@ from oauth2_provider.models import Application
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
+from social_django.models import UserSocialAuth
 
 User = get_user_model()
 
-class UserSerializer(OAuthLibMixin, serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     server_class = oauth2_settings.OAUTH2_SERVER_CLASS
     validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
     oauthlib_backend_class = OAuthLibCore
@@ -47,3 +48,30 @@ class UserSerializer(OAuthLibMixin, serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class TokenSerializer(serializers.ModelSerializer):
+    access_token = serializers.SerializerMethodField()
+    expires = serializers.SerializerMethodField()
+    auth_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserSocialAuth
+        fields = ['provider', 'access_token', 'expires', 'auth_time']
+
+    def get_access_token(self, obj):
+        extra_data = obj.extra_data
+        return extra_data.get('access_token')
+
+    def get_expires(self, obj):
+        extra_data = obj.extra_data
+        expires = None
+        if obj.provider in ['facebook', 'google-oauth2', 'linkedin-oauth2']:
+            expires = extra_data.get('expires')
+        elif obj.provider == 'twitter':
+            expires = extra_data.get('access_token', {}).get('x_auth_expires')
+
+        return expires
+
+    def get_auth_time(self, obj):
+        extra_data = obj.extra_data
+        return extra_data.get('auth_time')

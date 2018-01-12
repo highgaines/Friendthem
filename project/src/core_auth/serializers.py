@@ -17,11 +17,12 @@ class UserSerializer(OAuthLibMixin, serializers.ModelSerializer):
     client_secret = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
     grant_type = serializers.CharField(write_only=True)
-    username = serializers.EmailField()
+    username = serializers.EmailField(write_only=True)
+    email = serializers.EmailField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'first_name', 'last_name', 'client_id', 'client_secret', 'grant_type')
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'client_id', 'client_secret', 'grant_type')
 
     def validate_username(self, value):
         if User.objects.filter(email=value).exists():

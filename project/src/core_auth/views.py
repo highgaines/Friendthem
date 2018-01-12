@@ -7,11 +7,12 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from src.core_auth.serializers import UserSerializer
+from src.core_auth.serializers import UserSerializer, TokenSerializer
 
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
     model = get_user_model()
@@ -43,6 +44,16 @@ class UserDetailView(RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
+
+class TokensViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TokenSerializer
+    lookup_field = 'provider'
+    lookup_url_kwarg = 'provider'
+
+    def get_queryset(self):
+        return self.request.user.social_auth.all()
+
 def redirect_user_to_app(request):
     location = 'FriendThem://'
     response = HttpResponse('', status=302)
@@ -53,3 +64,5 @@ def redirect_user_to_app(request):
 
 register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()
+tokens_list = TokensViewSet.as_view({'get': 'list'})
+tokens_get = TokensViewSet.as_view({'get': 'retrieve'})

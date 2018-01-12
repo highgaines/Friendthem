@@ -109,10 +109,13 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.facebook.FacebookAppOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
+    'social_core.backends.google.GoogleOAuth2',
+    'src.core_auth.backends.RESTStateInstagramOAuth2',
+    'src.core_auth.backends.RESTStateLinkedinOAuth2',
+    'src.core_auth.backends.RESTTwitterOAuth',
     'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
-
 AUTH_USER_MODEL = 'core_auth.User'
 
 REST_FRAMEWORK = {
@@ -174,3 +177,5 @@ SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = '77ghwarmzcyd44'
 SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = 'L8tXa4iHSNFOz2Io'
 SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
 
+SOCIAL_AUTH_TWITTER_KEY = 'bTUbdB7Vfn9NdUQ6V4Ghl5ASK'
+SOCIAL_AUTH_TWITTER_SECRET = 'PKYRe38BBx4OnWKSfyVNVUIcXP6vUHBQEPiGpsza4UFtYJs6OT'

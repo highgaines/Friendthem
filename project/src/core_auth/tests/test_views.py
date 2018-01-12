@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from oauth2_provider.models import AccessToken
 
 User = get_user_model()
+
 class RegisterUserViewTests(APITestCase):
 
     def setUp(self):
@@ -62,3 +63,24 @@ class RegisterUserViewTests(APITestCase):
 
         assert 400 == response.status_code
         assert 1 == User.objects.count()
+
+
+class UserDetailViewTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('auth:me')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_returns_correct_data_for_user(self):
+        response = self.client.get(self.url)
+        assert 200 == response.status_code
+
+        content = response.json()
+        assert self.user.email == content['email']
+        assert self.user.id == content['id']
+

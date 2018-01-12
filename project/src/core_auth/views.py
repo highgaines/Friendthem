@@ -1,12 +1,12 @@
 import json
-from rest_framework.generics import CreateAPIView
 from django.contrib.auth import get_user_model
 
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from src.core_auth.serializers import UserSerializer
@@ -31,6 +31,15 @@ class RegisterUserView(OAuthLibMixin, CreateAPIView):
 
         for k, v in headers.items():
             response[k] = v
+
         return response
 
+class UserDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user
+
 register_user = RegisterUserView.as_view()
+user_details = UserDetailView.as_view()

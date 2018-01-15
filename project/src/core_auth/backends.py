@@ -13,7 +13,6 @@ User = get_user_model()
 
 class RESTStateOAuth2Mixin(object):
     def validate_state(self):
-        import ipdb; ipdb.set_trace()
         state = SessionStore(session_key=self.data.get('state'))
         return state
 

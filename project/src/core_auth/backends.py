@@ -12,11 +12,14 @@ from social_core.utils import url_add_parameters, parse_qs
 User = get_user_model()
 
 class RESTStateOAuth2Mixin(object):
+    """This authentication backend saves the oauth flow data in a separate session
+    in the start step. This data will used in complete step of the OAuth Flow."""
     def validate_state(self):
         state = SessionStore(session_key=self.data.get('state'))
         return state
 
     def get_unauthorized_token(self):
+        """Get unauthorized token from session passed on state parameter."""
         unauthed_tokens = self.state.get('_utoken')
         if not unauthed_tokens:
             raise AuthTokenError(self, 'Missing unauthorized token')
@@ -38,11 +41,17 @@ class RESTStateOAuth2Mixin(object):
         return token
 
     def set_unauthorized_token(self):
+        """
+        Save unauthorized token in session.
+        """
         self.session['_utoken'] = self.unauthorized_token()
         self.session.save()
         return self.session['_utoken']
 
     def get_or_create_state(self):
+        """
+        Save user id on session to pass to state parameter.
+        """
         self.session = SessionStore()
         self.session['_user_id'] = self.data.get('user_id')
         self.session.create()
@@ -50,6 +59,10 @@ class RESTStateOAuth2Mixin(object):
         return self.session.session_key
 
     def start(self):
+        """
+        Sends back the authentication url for the client app instead of
+        redirecting the user.
+        """
         return JsonResponse({'redirect_url': self.auth_url()})
 
     def oauth_authorization_request(self, token):
@@ -73,6 +86,7 @@ class RESTStateOAuth2Mixin(object):
         return uri
 
     def auth_complete(self, *args, **kwargs):
+        """Get user from state session."""
         self.state = self.validate_state()
         kwargs['user'] = User.objects.get(id=self.state['_user_id'])
         return super(RESTStateOAuth2Mixin, self).auth_complete(*args, **kwargs)

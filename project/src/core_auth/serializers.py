@@ -19,7 +19,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'client_id', 'client_secret', 'grant_type')
+        fields = (
+            'id', 'username', 'email', 'password', 'first_name',
+            'last_name', 'client_id', 'client_secret', 'grant_type'
+        )
 
     def validate_username(self, value):
         if User.objects.filter(email=value).exists():
@@ -44,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
 
 class TokenSerializer(serializers.ModelSerializer):
     access_token = serializers.SerializerMethodField()

@@ -49,5 +49,3 @@ class UserSerializerTests(APITestCase):
         assert 'first_name' in serializer.data
         assert 'last_name' in serializer.data
         assert 'password' not in serializer.data
-
-

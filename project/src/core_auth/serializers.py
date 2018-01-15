@@ -10,10 +10,6 @@ from social_django.models import UserSocialAuth
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-    server_class = oauth2_settings.OAUTH2_SERVER_CLASS
-    validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
-    oauthlib_backend_class = OAuthLibCore
-
     client_id = serializers.CharField(write_only=True)
     client_secret = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)

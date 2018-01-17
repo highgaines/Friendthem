@@ -8,12 +8,20 @@ from social_core.backends.instagram import InstagramOAuth2
 from social_core.backends.linkedin import LinkedinOAuth2
 from social_core.backends.twitter import TwitterOAuth
 from social_core.utils import url_add_parameters, parse_qs
+from social_core.exceptions import AuthTokenError
 
 User = get_user_model()
 
 class RESTStateOAuth2Mixin(object):
     """This authentication backend saves the oauth flow data in a separate session
     in the start step. This data will used in complete step of the OAuth Flow."""
+    def start(self):
+        """
+        Sends back the authentication url for the client app instead of
+        redirecting the user.
+        """
+        return JsonResponse({'redirect_url': self.auth_url()})
+
     def validate_state(self):
         self.session = SessionStore(session_key=self.data.get('state'))
         return self.session.session_key
@@ -57,13 +65,6 @@ class RESTStateOAuth2Mixin(object):
         self.session.create()
 
         return self.session.session_key
-
-    def start(self):
-        """
-        Sends back the authentication url for the client app instead of
-        redirecting the user.
-        """
-        return JsonResponse({'redirect_url': self.auth_url()})
 
     def oauth_authorization_request(self, token):
         """Generate OAuth request to authorize token."""

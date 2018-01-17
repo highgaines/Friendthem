@@ -15,12 +15,12 @@ class RESTStateOAuth2Mixin(object):
     """This authentication backend saves the oauth flow data in a separate session
     in the start step. This data will used in complete step of the OAuth Flow."""
     def validate_state(self):
-        state = SessionStore(session_key=self.data.get('state'))
-        return state
+        self.session = SessionStore(session_key=self.data.get('state'))
+        return self.session.session_key
 
     def get_unauthorized_token(self):
         """Get unauthorized token from session passed on state parameter."""
-        unauthed_tokens = self.state.get('_utoken')
+        unauthed_tokens = self.session.get('_utoken')
         if not unauthed_tokens:
             raise AuthTokenError(self, 'Missing unauthorized token')
 
@@ -87,8 +87,8 @@ class RESTStateOAuth2Mixin(object):
 
     def auth_complete(self, *args, **kwargs):
         """Get user from state session."""
-        self.state = self.validate_state()
-        kwargs['user'] = User.objects.get(id=self.state['_user_id'])
+        state = self.validate_state()
+        kwargs['user'] = User.objects.get(id=self.session['_user_id'])
         return super(RESTStateOAuth2Mixin, self).auth_complete(*args, **kwargs)
 
 

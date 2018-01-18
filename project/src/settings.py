@@ -109,13 +109,10 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.facebook.FacebookAppOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
-    'social_core.backends.google.GoogleOAuth2',
-    'src.core_auth.backends.RESTStateInstagramOAuth2',
-    'src.core_auth.backends.RESTStateLinkedinOAuth2',
-    'src.core_auth.backends.RESTTwitterOAuth',
     'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
 AUTH_USER_MODEL = 'core_auth.User'
 
 REST_FRAMEWORK = {
@@ -151,13 +148,12 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.mail.mail_validation',
-    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details'
 )
-
-LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'
 
 SOCIAL_AUTH_FACEBOOK_KEY = '593750164289317'
 SOCIAL_AUTH_FACEBOOK_SECRET = '6cd1be0a9c268d81a984f44059229014'
@@ -165,19 +161,3 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id,email,name'
 }
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '40082266099-prvuh3gnpmf1586aua110c5n8nvkahsh.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'cYxHogIYDPtCpwWFwvNxYrXP'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/youtube.force-ssl']
-SOCIAL_AUTH_GOOGLE_OAUTH2_IGNORE_DEFAULT_SCOPE = True
-SOCIAL_AUTH_GOOGLE_OAUTH2_USE_DEPRECATED_API = True
-
-SOCIAL_AUTH_INSTAGRAM_KEY = '24d50845c7184376b02a628d82db633f'
-SOCIAL_AUTH_INSTAGRAM_SECRET = 'a4a1cc884da94266b294a2cd8b59d8e3'
-
-SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = '77ghwarmzcyd44'
-SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = 'L8tXa4iHSNFOz2Io'
-SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
-
-SOCIAL_AUTH_TWITTER_KEY = 'bTUbdB7Vfn9NdUQ6V4Ghl5ASK'
-SOCIAL_AUTH_TWITTER_SECRET = 'PKYRe38BBx4OnWKSfyVNVUIcXP6vUHBQEPiGpsza4UFtYJs6OT'

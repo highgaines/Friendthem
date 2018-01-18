@@ -154,6 +154,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details'
 )
+SOCIAL_AUTH_USER_FIELDS = ['email']
 
 SOCIAL_AUTH_FACEBOOK_KEY = '593750164289317'
 SOCIAL_AUTH_FACEBOOK_SECRET = '6cd1be0a9c268d81a984f44059229014'

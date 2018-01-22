@@ -7,7 +7,6 @@ def get_user(strategy, *args, **kwargs):
     return {'user': user}
 
 def social_profile(strategy, response, details, backend, user, *args, **kwargs):
-    import ipdb; ipdb.set_trace()
     if backend.name == 'twitter':
         username = response.get('screen_name')
     elif backend.name == 'linkedin-oauth2':

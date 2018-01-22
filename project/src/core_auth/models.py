@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -42,3 +43,19 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+
+class SocialProfile(models.Model):
+    provider = models.CharField(max_length=32)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='social_profile',
+        on_delete=models.CASCADE,
+    )
+    username = models.CharField(max_length=256)
+
+    class Meta:
+        unique_together = ('user', 'provider')
+
+    def __str__(self):
+        return str(self.user)

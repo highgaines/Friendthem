@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import dj_database_url
+from decouple import config, Csv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +22,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '-)0=(5iq2g(q!^j(*w3n_22xroa7s_fgjbu&_2y+2rqb*+v#y*'
+SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 
 # Application definition
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'social_django',
     'rest_framework_social_oauth2',
     'src.core_auth',
+    'src.location',
 ]
 
 MIDDLEWARE = [
@@ -81,11 +84,9 @@ WSGI_APPLICATION = 'src.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config()
 }
+DATABASES['default']['engine'] = 'django.contrib.gis.db.backends.postgis'
 
 
 # Password validation
@@ -161,25 +162,25 @@ SOCIAL_AUTH_PIPELINE = (
 
 LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'
 
-SOCIAL_AUTH_FACEBOOK_KEY = '593750164289317'
-SOCIAL_AUTH_FACEBOOK_SECRET = '6cd1be0a9c268d81a984f44059229014'
+SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')
+SOCIAL_AUTH_FACEBOOK_SECRET = config('FACEBOOK_SECRET')
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id,email,name'
 }
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '40082266099-prvuh3gnpmf1586aua110c5n8nvkahsh.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'cYxHogIYDPtCpwWFwvNxYrXP'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/youtube.force-ssl']
 SOCIAL_AUTH_GOOGLE_OAUTH2_IGNORE_DEFAULT_SCOPE = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_USE_DEPRECATED_API = True
 
-SOCIAL_AUTH_INSTAGRAM_KEY = '24d50845c7184376b02a628d82db633f'
-SOCIAL_AUTH_INSTAGRAM_SECRET = 'a4a1cc884da94266b294a2cd8b59d8e3'
+SOCIAL_AUTH_INSTAGRAM_KEY = config('INSTAGRAM_KEY')
+SOCIAL_AUTH_INSTAGRAM_SECRET = config('INSTAGRAM_SECRET')
 
-SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = '77ghwarmzcyd44'
-SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = 'L8tXa4iHSNFOz2Io'
+SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = config('LINKEDIN_KEY')
+SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = config('LINKEDIN_SECRET')
 SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
 
-SOCIAL_AUTH_TWITTER_KEY = 'bTUbdB7Vfn9NdUQ6V4Ghl5ASK'
-SOCIAL_AUTH_TWITTER_SECRET = 'PKYRe38BBx4OnWKSfyVNVUIcXP6vUHBQEPiGpsza4UFtYJs6OT'
+SOCIAL_AUTH_TWITTER_KEY = config('TWITTER_KEY')
+SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')

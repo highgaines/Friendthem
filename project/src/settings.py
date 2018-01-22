@@ -145,6 +145,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 SOCIAL_AUTH_PIPELINE = (
+    'src.core_auth.pipelines.get_user',
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
@@ -154,7 +155,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.load_extra_data',
-    'social_core.pipeline.user.user_details'
+    'social_core.pipeline.user.user_details',
+    'src.core_auth.pipelines.social_profile',
 )
 
 LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'

@@ -47,6 +47,7 @@ class User(AbstractUser):
 
 class SocialProfile(models.Model):
     provider = models.CharField(max_length=32)
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='social_profile',

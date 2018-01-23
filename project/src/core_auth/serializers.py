@@ -6,8 +6,14 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
+from src.core_auth.models import SocialProfile
 
 User = get_user_model()
+
+class SocialProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialProfile
+        fields = ('provider', 'username')
 
 class UserSerializer(serializers.ModelSerializer):
     client_id = serializers.CharField(write_only=True)
@@ -16,13 +22,14 @@ class UserSerializer(serializers.ModelSerializer):
     grant_type = serializers.CharField(write_only=True)
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
+    social_profiles = SocialProfileSerializer(read_only=True, many=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'username', 'email', 'password', 'first_name',
             'last_name', 'client_id', 'client_secret', 'grant_type',
-            'picture', 'hobbies',
+            'picture', 'hobbies', 'social_profiles'
         )
 
     def validate_username(self, value):

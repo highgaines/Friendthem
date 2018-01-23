@@ -68,6 +68,7 @@ class RegisterUserViewTests(APITestCase):
 class UserDetailViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
+        social_profile = mommy.make('SocialProfile', user=self.user)
         self.client.force_authenticate(self.user)
         self.url = reverse('auth:me')
 
@@ -83,6 +84,9 @@ class UserDetailViewTests(APITestCase):
         content = response.json()
         assert self.user.email == content['email']
         assert self.user.id == content['id']
+        assert None == content['hobbies']
+        assert 'social_profiles' in content
+        assert 1 == len(content['social_profiles'])
 
 
 class TokensViewTests(APITestCase):

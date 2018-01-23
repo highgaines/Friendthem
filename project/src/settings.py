@@ -157,7 +157,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
-    'src.core_auth.pipelines.social_profile',
+    'src.core_auth.pipelines.profile_data',
+
 )
 
 LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'

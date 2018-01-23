@@ -54,7 +54,7 @@ class SocialProfile(models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='social_profile',
+        related_name='social_profiles',
         on_delete=models.CASCADE,
     )
     username = models.CharField(max_length=256)

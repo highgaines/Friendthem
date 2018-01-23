@@ -12,7 +12,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from src.core_auth.serializers import UserSerializer, TokenSerializer, HobbiesSerializer
+from src.core_auth.serializers import (UserSerializer, TokenSerializer,
+                                       HobbiesSerializer, LocationSerializer)
 
 
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
@@ -72,8 +73,16 @@ class UpdateHobbiesView(UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+class UpdateLocationView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LocationSerializer
+
+    def get_object(self):
+        return self.request.user
+
 register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()
 tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
 update_hobbies = UpdateHobbiesView.as_view()
+update_location = UpdateLocationView.as_view()

@@ -83,3 +83,8 @@ class TokenSerializer(serializers.ModelSerializer):
     def get_auth_time(self, obj):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
+
+class HobbiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('hobbies',)

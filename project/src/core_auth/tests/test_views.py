@@ -206,6 +206,35 @@ class TokensViewTests(APITestCase):
         } == content
 
 
+class UpdateHobbiesTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        social_profile = mommy.make('SocialProfile', user=self.user)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('auth:hobbies')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.put(self.url)
+        assert 401 == response.status_code
+
+    def test_update_hobbies(self):
+        data = {'hobbies': ['Music', 'Chess']}
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert data['hobbies'] == user.hobbies
+
+    def test_update_hobbies_overrides_old_hobbies(self):
+        self.user.hobbies = ['Shaolin Shadowboxing']
+        self.user.save()
+        data = {'hobbies': ['Music', 'Chess']}
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert data['hobbies'] == user.hobbies
+
+
 class RedirectToAppViewTests(APITestCase):
     def test_view_redirects_to_app(self):
         response = self.client.get(reverse('auth:redirect_to_app'))

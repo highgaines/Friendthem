@@ -7,12 +7,12 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from src.core_auth.serializers import UserSerializer, TokenSerializer
+from src.core_auth.serializers import UserSerializer, TokenSerializer, HobbiesSerializer
 
 
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
@@ -65,7 +65,15 @@ def redirect_user_to_app(request):
     return response
 
 
+class UpdateHobbiesView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = HobbiesSerializer
+
+    def get_object(self):
+        return self.request.user
+
 register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()
 tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
+update_hobbies = UpdateHobbiesView.as_view()

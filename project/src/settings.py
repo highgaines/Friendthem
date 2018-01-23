@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'rest_framework',
     'oauth2_provider',
     'social_django',
@@ -160,6 +161,7 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 LOGIN_REDIRECT_URL = '/auth/redirect_to_app/'
+SOCIAL_AUTH_USER_FIELD = ['email',]
 
 SOCIAL_AUTH_FACEBOOK_KEY = '593750164289317'
 SOCIAL_AUTH_FACEBOOK_SECRET = '6cd1be0a9c268d81a984f44059229014'
@@ -170,6 +172,7 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '40082266099-prvuh3gnpmf1586aua110c5n8nvkahsh.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'cYxHogIYDPtCpwWFwvNxYrXP'
+
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/youtube.force-ssl']
 SOCIAL_AUTH_GOOGLE_OAUTH2_IGNORE_DEFAULT_SCOPE = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_USE_DEPRECATED_API = True

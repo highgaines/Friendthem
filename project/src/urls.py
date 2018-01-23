@@ -21,7 +21,7 @@ from rest_framework_social_oauth2 import urls as rest_framework_social_oauth2_ur
 auth_name = apps.get_app_config('core_auth').verbose_name
 
 urlpatterns = [
+    path('/', include(('src.core_auth.urls', auth_name), namespace='user')),
     path('auth/', include('rest_framework_social_oauth2.urls')),
-    path('auth/', include(('src.core_auth.urls', auth_name), namespace='auth')),
     path('admin/', admin.site.urls),
 ]

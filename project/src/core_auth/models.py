@@ -40,27 +40,27 @@ class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     username = None
 
+    picture = models.URLField(blank=True, null=True)
+    hobbies = ArrayField(models.CharField(max_length=64), blank=True, null=True)
+
     objects = UserManager()
+
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-class Profile(models.Model):
-    hobbies = ArrayField(models.CharField(max_length=64))
-    picture = models.URLField()
-
 class SocialProfile(models.Model):
     provider = models.CharField(max_length=32)
 
-    profile = models.ForeignKey(
-        'Profile',
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         related_name='social_profile',
         on_delete=models.CASCADE,
     )
     username = models.CharField(max_length=256)
 
     class Meta:
-        unique_together = ('profile', 'provider')
+        unique_together = ('user', 'provider')
 
     def __str__(self):
         return str(self.user)

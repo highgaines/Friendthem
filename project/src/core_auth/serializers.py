@@ -86,6 +86,7 @@ class TokenSerializer(serializers.ModelSerializer):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
 
+
 class HobbiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -98,3 +99,17 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('last_location',)
+
+class NearbyUsersSerializer(serializers.ModelSerializer):
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name',
+            'picture', 'hobbies', 'social_profiles',
+            'last_location', 'distance'
+        )
+
+    def get_distance(self, obj):
+        return obj.distance.mi

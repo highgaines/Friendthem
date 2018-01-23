@@ -9,4 +9,5 @@ urlpatterns = [
     path('auth/me/tokens/', views.tokens_list, name='list_tokens'),
     path('auth/me/tokens/<provider>/', views.tokens_get, name='get_token'),
     path('redirect_to_app/', views.redirect_user_to_app, name='redirect_to_app'),
+    path('nearby_users/', views.nearby_users, name='nearby_users'),
 ]

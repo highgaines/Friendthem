@@ -241,7 +241,6 @@ class UpdateHobbiesTests(APITestCase):
 class UpdateLocationTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
-        social_profile = mommy.make('SocialProfile', user=self.user)
         self.client.force_authenticate(self.user)
         self.url = reverse('user:location')
 
@@ -274,6 +273,31 @@ class UpdateLocationTests(APITestCase):
         user = User.objects.get(id=self.user.id)
         assert 400 == response.status_code
         assert 'Point must have `lng` and `lat` keys.' == response.json()['last_location'][0]
+
+
+class NearbyUsersView(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User, last_location=GEOSGeometry('POINT (0 0)'))
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:nearby_users')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_get_nearby_users(self):
+        other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
+        response = self.client.get(self.url + '?miles=200')
+        assert 200 == response.status_code
+
+        assert 1 == len(response.json())
+        other_user_data = response.json()[0]
+
+        assert other_user_data['id'] == other_user_1.id
+        assert 'distance' in other_user_data
+        assert 0.006917072471764893 == other_user_data['distance']
 
 
 class RedirectToAppViewTests(APITestCase):

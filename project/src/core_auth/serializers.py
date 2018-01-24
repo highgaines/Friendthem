@@ -6,8 +6,16 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
+from src.core_auth.models import SocialProfile
+from src.utils.fields import PointField
 
 User = get_user_model()
+
+class SocialProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialProfile
+        fields = ('provider', 'username')
+
 
 class UserSerializer(serializers.ModelSerializer):
     client_id = serializers.CharField(write_only=True)
@@ -16,12 +24,14 @@ class UserSerializer(serializers.ModelSerializer):
     grant_type = serializers.CharField(write_only=True)
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
+    social_profiles = SocialProfileSerializer(read_only=True, many=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'username', 'email', 'password', 'first_name',
-            'last_name', 'client_id', 'client_secret', 'grant_type'
+            'last_name', 'client_id', 'client_secret', 'grant_type',
+            'picture', 'hobbies', 'social_profiles'
         )
 
     def validate_username(self, value):
@@ -75,3 +85,31 @@ class TokenSerializer(serializers.ModelSerializer):
     def get_auth_time(self, obj):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
+
+
+class HobbiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('hobbies',)
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    last_location = PointField()
+
+    class Meta:
+        model = User
+        fields = ('last_location',)
+
+class NearbyUsersSerializer(serializers.ModelSerializer):
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name',
+            'picture', 'hobbies', 'social_profiles',
+            'last_location', 'distance'
+        )
+
+    def get_distance(self, obj):
+        return obj.distance.mi

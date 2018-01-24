@@ -1,7 +1,10 @@
 from model_mommy import mommy
-from django.urls import reverse
 from rest_framework.test import APITestCase
+
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import GEOSGeometry
+from django.urls import reverse
+
 from oauth2_provider.models import AccessToken
 
 User = get_user_model()
@@ -10,7 +13,7 @@ class RegisterUserViewTests(APITestCase):
 
     def setUp(self):
         self.application = mommy.make('Application', authorization_grant_type='password')
-        self.url = reverse('auth:register')
+        self.url = reverse('user:register')
 
     def test_register_user_with_correct_data(self):
         data = {
@@ -68,8 +71,9 @@ class RegisterUserViewTests(APITestCase):
 class UserDetailViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
+        social_profile = mommy.make('SocialProfile', user=self.user)
         self.client.force_authenticate(self.user)
-        self.url = reverse('auth:me')
+        self.url = reverse('user:me')
 
     def test_login_required(self):
         self.client.logout()
@@ -83,6 +87,9 @@ class UserDetailViewTests(APITestCase):
         content = response.json()
         assert self.user.email == content['email']
         assert self.user.id == content['id']
+        assert None == content['hobbies']
+        assert 'social_profiles' in content
+        assert 1 == len(content['social_profiles'])
 
 
 class TokensViewTests(APITestCase):
@@ -132,7 +139,7 @@ class TokensViewTests(APITestCase):
             }
         )
         self.client.force_authenticate(self.user)
-        self.url = reverse('auth:list_tokens')
+        self.url = reverse('user:list_tokens')
 
     def test_login_required(self):
         self.client.logout()
@@ -189,7 +196,7 @@ class TokensViewTests(APITestCase):
         } == [x for x in content if x['provider'] == 'instagram'][0]
 
     def test_get_tokens_for_user_and_provider(self):
-        response = self.client.get(reverse('auth:get_token', kwargs={'provider': 'facebook'}))
+        response = self.client.get(reverse('user:get_token', kwargs={'provider': 'facebook'}))
         assert 200 == response.status_code
 
         content = response.json()
@@ -202,8 +209,99 @@ class TokensViewTests(APITestCase):
         } == content
 
 
+class UpdateHobbiesTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        social_profile = mommy.make('SocialProfile', user=self.user)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:hobbies')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.put(self.url)
+        assert 401 == response.status_code
+
+    def test_update_hobbies(self):
+        data = {'hobbies': ['Music', 'Chess']}
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert data['hobbies'] == user.hobbies
+
+    def test_update_hobbies_overrides_old_hobbies(self):
+        self.user.hobbies = ['Shaolin Shadowboxing']
+        self.user.save()
+        data = {'hobbies': ['Music', 'Chess']}
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert data['hobbies'] == user.hobbies
+
+
+class UpdateLocationTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:location')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.put(self.url)
+        assert 401 == response.status_code
+
+    def test_update_location(self):
+        data = {'last_location': {'lat':1, 'lng': 2}}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert 2 == user.last_location.x
+        assert 1 == user.last_location.y
+
+    def test_update_location_overrides_old_location(self):
+        self.user.last_location = GEOSGeometry('POINT (2 1)')
+        self.user.save()
+        data = {'last_location': {'lng': 1, 'lat': 2}}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert 1 == user.last_location.x
+        assert 2 == user.last_location.y
+
+    def test_returns_400_for_incorrect_data(self):
+        data = {'last_location': {'lrg': 1, 'lat': 2}}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 400 == response.status_code
+        assert 'Point must have `lng` and `lat` keys.' == response.json()['last_location'][0]
+
+
+class NearbyUsersView(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User, last_location=GEOSGeometry('POINT (0 0)'))
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:nearby_users')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_get_nearby_users(self):
+        other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
+        response = self.client.get(self.url + '?miles=200')
+        assert 200 == response.status_code
+
+        assert 1 == len(response.json())
+        other_user_data = response.json()[0]
+
+        assert other_user_data['id'] == other_user_1.id
+        assert 'distance' in other_user_data
+        assert 0.006917072471764893 == other_user_data['distance']
+
+
 class RedirectToAppViewTests(APITestCase):
     def test_view_redirects_to_app(self):
-        response = self.client.get(reverse('auth:redirect_to_app'))
+        response = self.client.get(reverse('user:redirect_to_app'))
         assert 302 == response.status_code
         assert 'FriendThem://' == response['Location']

@@ -1,12 +1,16 @@
 from six.moves.urllib_parse import urlencode
+
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+
 from social_core.backends.instagram import InstagramOAuth2
 from social_core.backends.linkedin import LinkedinOAuth2
 from social_core.backends.twitter import TwitterOAuth
+from social_core.backends.google import GoogleOAuth2
 from social_core.utils import url_add_parameters, parse_qs
 from social_core.exceptions import AuthTokenError
 
@@ -100,4 +104,7 @@ class RESTStateInstagramOAuth2(RESTStateOAuth2Mixin, InstagramOAuth2):
     pass
 
 class RESTStateLinkedinOAuth2(RESTStateOAuth2Mixin, LinkedinOAuth2):
+    pass
+
+class RESTStateGoogleOAuth2(RESTStateOAuth2Mixin, GoogleOAuth2):
     pass

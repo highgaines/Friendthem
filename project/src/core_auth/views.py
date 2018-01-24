@@ -91,7 +91,7 @@ class NearbyUsersView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        miles = self.request.GET['miles']
+        miles = self.request.GET.get('miles', 200)
         distance = D(mi=miles)
 
         return get_user_model().objects.filter(

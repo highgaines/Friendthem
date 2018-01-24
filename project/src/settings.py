@@ -110,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.facebook.FacebookAppOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
-    'social_core.backends.google.GoogleOAuth2',
+    'src.core_auth.backends.RESTStateGoogleOAuth2',
     'src.core_auth.backends.RESTStateInstagramOAuth2',
     'src.core_auth.backends.RESTStateLinkedinOAuth2',
     'src.core_auth.backends.RESTTwitterOAuth',

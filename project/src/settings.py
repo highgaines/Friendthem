@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'rest_framework',
     'oauth2_provider',
     'social_django',
@@ -160,7 +161,10 @@ SOCIAL_AUTH_PIPELINE = (
 
 )
 
+
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
+SOCIAL_AUTH_USER_FIELD = ['email',]
+
 
 SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')
 SOCIAL_AUTH_FACEBOOK_SECRET = config('FACEBOOK_SECRET')
@@ -168,6 +172,7 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id,email,name'
 }
+
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('GOOGLE_OAUTH2_SECRET')

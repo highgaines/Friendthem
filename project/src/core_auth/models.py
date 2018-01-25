@@ -5,6 +5,8 @@ from django.contrib.gis.db.models import PointField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from phonenumber_field.modelfields import PhoneNumberField
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, *args, **kwargs):
         """
@@ -43,6 +45,11 @@ class User(AbstractUser):
 
     picture = models.URLField(blank=True, null=True)
     hobbies = ArrayField(models.CharField(max_length=64), blank=True, null=True)
+    hometown = models.CharField(max_length=128, blank=True, null=True)
+    occupation = models.CharField(max_length=128, blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    personal_email = models.EmailField(blank=True, null=True)
 
     last_location = PointField(
         geography=True, blank=True, null=True,

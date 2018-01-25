@@ -31,7 +31,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'password', 'first_name',
             'last_name', 'client_id', 'client_secret', 'grant_type',
-            'picture', 'hobbies', 'social_profiles'
+            'picture', 'hobbies', 'social_profiles',
+            'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email'
         )
 
     def validate_username(self, value):
@@ -86,6 +88,14 @@ class TokenSerializer(serializers.ModelSerializer):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
 
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email'
+        )
 
 class HobbiesSerializer(serializers.ModelSerializer):
     class Meta:

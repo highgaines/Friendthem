@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from src.core_auth.serializers import (UserSerializer, TokenSerializer,
-                                       HobbiesSerializer, LocationSerializer,
+                                       ProfileSerializer, LocationSerializer,
                                        NearbyUsersSerializer)
 
 
@@ -70,13 +70,12 @@ def redirect_user_to_app(request):
     return response
 
 
-class UpdateHobbiesView(UpdateAPIView):
+class UpdateProfileView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = HobbiesSerializer
+    serializer_class = ProfileSerializer
 
     def get_object(self):
         return self.request.user
-
 
 class UpdateLocationView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -105,6 +104,6 @@ register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()
 tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
-update_hobbies = UpdateHobbiesView.as_view()
+update_profile = UpdateProfileView.as_view()
 update_location = UpdateLocationView.as_view()
 nearby_users = NearbyUsersView.as_view()

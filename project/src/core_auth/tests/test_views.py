@@ -209,33 +209,71 @@ class TokensViewTests(APITestCase):
         } == content
 
 
-class UpdateHobbiesTests(APITestCase):
+class UpdateProfileViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
-        social_profile = mommy.make('SocialProfile', user=self.user)
         self.client.force_authenticate(self.user)
-        self.url = reverse('user:hobbies')
+        self.url = reverse('user:profile')
 
     def test_login_required(self):
         self.client.logout()
         response = self.client.put(self.url)
         assert 401 == response.status_code
 
-    def test_update_hobbies(self):
-        data = {'hobbies': ['Music', 'Chess']}
+    def test_update_profile(self):
+        data = {
+            'hobbies': ['Music', 'Chess'],
+            'phone_number': '+5541999999999',
+            'hometown': 'New York',
+            'occupation': 'Test Occupation',
+            'age': 33,
+            'personal_email': 'test@example.com'
+        }
         response = self.client.put(self.url, data=data)
         user = User.objects.get(id=self.user.id)
         assert 200 == response.status_code
         assert data['hobbies'] == user.hobbies
+        assert data['phone_number'] == user.phone_number
+        assert data['hometown'] == user.hometown
+        assert data['occupation'] == user.occupation
+        assert data['age'] == user.age
+        assert data['personal_email'] == user.personal_email
 
-    def test_update_hobbies_overrides_old_hobbies(self):
+    def test_update_overrides_old_profile(self):
         self.user.hobbies = ['Shaolin Shadowboxing']
         self.user.save()
-        data = {'hobbies': ['Music', 'Chess']}
+        data = {
+            'hobbies': ['Music', 'Chess'],
+            'phone_number': '+5541999999999',
+            'hometown': 'New York',
+            'occupation': 'Test Occupation',
+            'age': 33,
+            'personal_email': 'test@example.com'
+        }
         response = self.client.put(self.url, data=data)
         user = User.objects.get(id=self.user.id)
         assert 200 == response.status_code
         assert data['hobbies'] == user.hobbies
+        assert data['phone_number'] == user.phone_number
+        assert data['hometown'] == user.hometown
+        assert data['occupation'] == user.occupation
+        assert data['age'] == user.age
+        assert data['personal_email'] == user.personal_email
+
+    def test_patch_updates_only_present_fields(self):
+        self.user.hobbies = ['Shaolin Shadowboxing']
+        self.user.save()
+        data = {
+            'hometown': 'New York',
+            'occupation': 'Test Occupation',
+        }
+        response = self.client.patch(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert ['Shaolin Shadowboxing'] == user.hobbies
+        assert data['hometown'] == user.hometown
+        assert data['occupation'] == user.occupation
+
 
 
 class UpdateLocationTests(APITestCase):

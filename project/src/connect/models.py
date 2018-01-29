@@ -7,6 +7,7 @@ class Connection(models.Model):
     INSTAGRAM = 'instagram'
     TWITTER = 'Twitter'
     YOUTUBE = 'youtube'
+    SNAPCHAT = 'snapchat'
 
     PROVIDER_CHOICES = (
         (FACEBOOK, 'Facebook'),
@@ -28,3 +29,6 @@ class Connection(models.Model):
     )
     provider = models.CharField(max_length=10, choices=PROVIDER_CHOICES)
     confirmed = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('user_1', 'user_2', 'provider')

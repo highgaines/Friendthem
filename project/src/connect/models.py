@@ -12,7 +12,8 @@ class Connection(models.Model):
         (FACEBOOK, 'Facebook'),
         (INSTAGRAM, 'Instagram'),
         (YOUTUBE, 'Youtube'),
-        (TWITTER, 'Twitter')
+        (TWITTER, 'Twitter'),
+        (SNAPCHAT, 'Snapchat'),
     )
 
     user_1 = models.ForeignKey(

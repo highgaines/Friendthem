@@ -4,7 +4,8 @@ from model_mommy import mommy
 
 from django.test import TestCase
 from django.conf import settings
-from src.connect.services import TwitterConnect, InstagramConnect, YoutubeConnect, CredentialsNotFound, SocialUserNotFound
+from src.connect.services import TwitterConnect, InstagramConnect, YoutubeConnect
+from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
 class TwitterConnectTestCase(TestCase):
     def setUp(self):
@@ -28,7 +29,7 @@ class TwitterConnectTestCase(TestCase):
         connect = TwitterConnect(self.user)
         authenticate.assert_called_once_with(self.user)
 
-    @patch('src.connect.services.twitter')
+    @patch('src.connect.services.twitter.twitter')
     def test_authenticate_calls_api_with_tokens(self, mocked_twitter):
         connect = TwitterConnect(self.user)
         mocked_twitter.Api.assert_called_once_with(
@@ -48,7 +49,7 @@ class TwitterConnectTestCase(TestCase):
         with pytest.raises(CredentialsNotFound):
             connect = TwitterConnect(self.user)
 
-    @patch('src.connect.services.twitter')
+    @patch('src.connect.services.twitter.twitter')
     def test_connect_calls_create_friendship_on_twitter(self, mocked_twitter):
         api_object = Mock()
         friendship = Mock()
@@ -63,7 +64,7 @@ class TwitterConnectTestCase(TestCase):
             user_id=self.other_social_auth.uid, follow=True
         )
 
-    @patch('src.connect.services.twitter')
+    @patch('src.connect.services.twitter.twitter')
     def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_twitter):
         api_object = Mock()
         friendship = Mock()
@@ -100,7 +101,7 @@ class InstagramConnectTestCase(TestCase):
         connect = InstagramConnect(self.user)
         authenticate.assert_called_once_with(self.user)
 
-    @patch('src.connect.services.InstagramAPI')
+    @patch('src.connect.services.instagram.InstagramAPI')
     def test_authenticate_calls_api_with_tokens(self, mocked_instagram):
         connect = InstagramConnect(self.user)
         mocked_instagram.assert_called_once_with(
@@ -119,7 +120,7 @@ class InstagramConnectTestCase(TestCase):
         with pytest.raises(CredentialsNotFound):
             connect = InstagramConnect(self.user)
 
-    @patch('src.connect.services.InstagramAPI')
+    @patch('src.connect.services.instagram.InstagramAPI')
     def test_connect_calls_creates_follow_on_instagram(self, mocked_instagram):
         api_object = Mock()
         follow = [Mock()]
@@ -134,7 +135,7 @@ class InstagramConnectTestCase(TestCase):
             user_id=self.other_social_auth.uid,
         )
 
-    @patch('src.connect.services.twitter')
+    @patch('src.connect.services.instagram.InstagramAPI')
     def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_instagram):
         api_object = Mock()
         follow = [Mock()]
@@ -171,8 +172,8 @@ class YoutubeConnectTestCase(TestCase):
         connect = YoutubeConnect(self.user)
         authenticate.assert_called_once_with(self.user)
 
-    @patch('src.connect.services.googleapiclient')
-    @patch('src.connect.services.google.oauth2.credentials')
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
     def test_authenticate_calls_api_with_tokens(self, mocked_credentials, mocked_google):
         connect = YoutubeConnect(self.user)
         mocked_credentials.Credentials.assert_called_once_with(
@@ -195,8 +196,8 @@ class YoutubeConnectTestCase(TestCase):
         with pytest.raises(CredentialsNotFound):
             connect = YoutubeConnect(self.user)
 
-    @patch('src.connect.services.googleapiclient')
-    @patch('src.connect.services.google.oauth2.credentials')
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
     def test_connect_calls_create_subscription(self, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
@@ -214,8 +215,8 @@ class YoutubeConnectTestCase(TestCase):
         )
         api_object.subscriptions().insert().execute.assert_called_once_with()
 
-    @patch('src.connect.services.googleapiclient')
-    @patch('src.connect.services.google.oauth2.credentials')
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
     def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
@@ -227,8 +228,8 @@ class YoutubeConnectTestCase(TestCase):
             connection = connect.connect(self.other_user)
         api_object.subscriptions().insert.assert_not_called()
 
-    @patch('src.connect.services.googleapiclient')
-    @patch('src.connect.services.google.oauth2.credentials')
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
     def test_connect_raises_error_if_other_user_don_have_youtube_channel(self, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object

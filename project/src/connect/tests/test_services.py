@@ -120,7 +120,7 @@ class InstagramConnectTestCase(TestCase):
             connect = InstagramConnect(self.user)
 
     @patch('src.connect.services.InstagramAPI')
-    def test_connect_calls_create_friendship_on_twitter(self, mocked_instagram):
+    def test_connect_calls_creates_follow_on_instagram(self, mocked_instagram):
         api_object = Mock()
         follow = [Mock()]
         follow[0].outgoing_status = 'follows'

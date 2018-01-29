@@ -12,7 +12,7 @@ class TwitterConnect(BaseConnect):
             token_key = social_auth.extra_data.get('access_token', {})['oauth_token']
             token_secret =  social_auth.extra_data.get('access_token', {})['oauth_token_secret']
         except (ObjectDoesNotExist, KeyError):
-            raise CredentialsNotFound
+            raise CredentialsNotFound('twitter', user)
 
         return twitter.Api(
             consumer_key=settings.SOCIAL_AUTH_TWITTER_KEY,
@@ -25,7 +25,7 @@ class TwitterConnect(BaseConnect):
             other_social_auth = other_user.social_auth.get(provider='twitter')
             other_user_id = other_social_auth.uid
         except ObjectDoesNotExist:
-            raise SocialUserNotFound
+            raise SocialUserNotFound('twitter', other_user)
 
         friendship = self.api.CreateFriendship(user_id=other_user_id, follow=True)
 

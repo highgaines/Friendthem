@@ -11,7 +11,7 @@ class YoutubeConnect(BaseConnect):
             social_auth = user.social_auth.get(provider='google-oauth2')
             token_key = social_auth.extra_data['access_token']
         except (ObjectDoesNotExist, KeyError):
-            raise CredentialsNotFound
+            raise CredentialsNotFound('google-oauth2', user)
 
 
         credentials = google.oauth2.credentials.Credentials(
@@ -28,7 +28,7 @@ class YoutubeConnect(BaseConnect):
             channel_id = other_social_auth.extra_data['youtube_channel']
 
         except (ObjectDoesNotExist, KeyError):
-            raise SocialUserNotFound
+            raise SocialUserNotFound('google-oauth2', other_user)
 
         resource = {'snippet': {
             'resourceId': {

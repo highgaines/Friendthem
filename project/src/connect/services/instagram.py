@@ -11,7 +11,7 @@ class InstagramConnect(BaseConnect):
             social_auth = user.social_auth.get(provider='instagram')
             token_key = social_auth.extra_data['access_token']
         except (ObjectDoesNotExist, KeyError):
-            raise CredentialsNotFound
+            raise CredentialsNotFound('instagram', user)
 
         return InstagramAPI(
             client_secret=settings.SOCIAL_AUTH_INSTAGRAM_SECRET,
@@ -23,7 +23,7 @@ class InstagramConnect(BaseConnect):
             other_social_auth = other_user.social_auth.get(provider='instagram')
             other_user_id = other_social_auth.uid
         except ObjectDoesNotExist:
-            raise SocialUserNotFound
+            raise SocialUserNotFound('instagram', other_user)
 
         follow = self.api.follow_user(user_id=other_user_id)
 

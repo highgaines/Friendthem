@@ -1,3 +1,5 @@
+import googleapiclient.discovery, google.oauth2.credentials
+from django.conf import settings
 from src.core_auth.models import SocialProfile
 
 def get_user(strategy, *args, **kwargs):
@@ -27,6 +29,24 @@ def social_profile(backend, response, details, user, *args, **kwargs):
             user=user, provider=backend.name,
             defaults={'username': username}
     )
+
+def get_youtube_channel(strategy, backend, social, *args, **kwargs):
+    if backend.name == 'google-oauth2':
+        credentials = google.oauth2.credentials.Credentials(
+            token=social.get_access_token(strategy),
+            client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+        )
+
+        service = googleapiclient.discovery.build(
+            'youtube', 'v3',
+            credentials=credentials
+        )
+        response = service.channels().list(mine=True, part='id').execute()
+
+        if response.get('items'):
+            social.set_extra_data({'youtube_channel': response['items'][0]['id']})
+            social.save()
 
 def profile_picture(backend, response, user):
     if user.picture:

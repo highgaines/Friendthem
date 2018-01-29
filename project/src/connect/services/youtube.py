@@ -13,7 +13,6 @@ class YoutubeConnect(BaseConnect):
         except (ObjectDoesNotExist, KeyError):
             raise CredentialsNotFound('google-oauth2', user)
 
-
         credentials = google.oauth2.credentials.Credentials(
             token=social_auth.extra_data['access_token'],
             client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,

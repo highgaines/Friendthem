@@ -4,7 +4,7 @@ from model_mommy import mommy
 
 from django.test import TestCase
 from django.conf import settings
-from src.connect.services import TwitterConnect, InstagramConnect, CredentialsNotFound, SocialUserNotFound
+from src.connect.services import TwitterConnect, InstagramConnect, YoutubeConnect, CredentialsNotFound, SocialUserNotFound
 
 class TwitterConnectTestCase(TestCase):
     def setUp(self):
@@ -148,3 +148,95 @@ class InstagramConnectTestCase(TestCase):
         with pytest.raises(SocialUserNotFound):
             connection = connect.connect(self.other_user)
         api_object.follow_user.assert_not_called()
+
+
+class YoutubeConnectTestCase(TestCase):
+    def setUp(self):
+        self.user_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='google-oauth2',
+            extra_data={'access_token': '123456'}
+        )
+        self.user = self.user_social_auth.user
+
+        self.other_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='google-oauth2',
+            extra_data={'youtube_channel': 'UCTestYoutubeChannel'}
+        )
+        self.other_user = self.other_social_auth.user
+
+    @patch.object(YoutubeConnect, '_authenticate')
+    def test_initialization_calls_authenticate_for_user(self, authenticate):
+        connect = YoutubeConnect(self.user)
+        authenticate.assert_called_once_with(self.user)
+
+    @patch('src.connect.services.googleapiclient')
+    @patch('src.connect.services.google.oauth2.credentials')
+    def test_authenticate_calls_api_with_tokens(self, mocked_credentials, mocked_google):
+        connect = YoutubeConnect(self.user)
+        mocked_credentials.Credentials.assert_called_once_with(
+                token='123456',
+                client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+        )
+        mocked_google.discovery.build.assert_called_once_with(
+            'youtube', 'v3', credentials=mocked_credentials.Credentials.return_value
+        )
+
+    def test_authenticate_raises_error_if_no_user_social_auth(self):
+        self.user_social_auth.delete()
+        with pytest.raises(CredentialsNotFound):
+            connect = YoutubeConnect(self.user)
+
+    def test_authenticate_raises_error_if_no_user_credentials(self):
+        self.user_social_auth.extra_data = {}
+        self.user_social_auth.save()
+        with pytest.raises(CredentialsNotFound):
+            connect = YoutubeConnect(self.user)
+
+    @patch('src.connect.services.googleapiclient')
+    @patch('src.connect.services.google.oauth2.credentials')
+    def test_connect_calls_create_subscription(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        mocked_client.discovery.build.return_value = api_object
+
+        connect = YoutubeConnect(self.user)
+        connection = connect.connect(self.other_user)
+        assert connection is True
+        api_object.subscriptions().insert.assert_called_once_with(
+            body={'snippet': {
+                'resourceId': {
+                    'kind': 'youtube#channel',
+                    'channelId': 'UCTestYoutubeChannel',
+                }
+            }}, part='snippet'
+        )
+        api_object.subscriptions().insert().execute.assert_called_once_with()
+
+    @patch('src.connect.services.googleapiclient')
+    @patch('src.connect.services.google.oauth2.credentials')
+    def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        mocked_client.discovery.build.return_value = api_object
+
+        self.other_social_auth.delete()
+
+        connect = YoutubeConnect(self.user)
+        with pytest.raises(SocialUserNotFound):
+            connection = connect.connect(self.other_user)
+        api_object.subscriptions().insert.assert_not_called()
+
+    @patch('src.connect.services.googleapiclient')
+    @patch('src.connect.services.google.oauth2.credentials')
+    def test_connect_raises_error_if_other_user_don_have_youtube_channel(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        mocked_client.discovery.build.return_value = api_object
+
+        self.other_social_auth.extra_data = {}
+        self.other_social_auth.save()
+
+        connect = YoutubeConnect(self.user)
+        with pytest.raises(SocialUserNotFound):
+            connection = connect.connect(self.other_user)
+        api_object.subscriptions().insert.assert_not_called()

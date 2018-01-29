@@ -1,5 +1,7 @@
 import twitter
 from instagram import InstagramAPI, InstagramClientError
+
+import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -70,3 +72,41 @@ class InstagramConnect(object):
         if follow[0].outgoing_status == 'follows':
             return True
         return False
+
+class YoutubeConnect(object):
+    def __init__(self, user):
+        self.api = self._authenticate(user)
+
+    def _authenticate(self, user):
+        try:
+            social_auth = user.social_auth.get(provider='google-oauth2')
+            token_key = social_auth.extra_data['access_token']
+        except (ObjectDoesNotExist, KeyError):
+            raise CredentialsNotFound
+
+
+        credentials = google.oauth2.credentials.Credentials(
+            token=social_auth.extra_data['access_token'],
+            client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+        )
+
+        return googleapiclient.discovery.build('youtube', 'v3', credentials=credentials)
+
+    def connect(self, other_user):
+        try:
+            other_social_auth = other_user.social_auth.get(provider='google-oauth2')
+            channel_id = other_social_auth.extra_data['youtube_channel']
+
+        except (ObjectDoesNotExist, KeyError):
+            raise SocialUserNotFound
+
+        resource = {'snippet': {
+            'resourceId': {
+                'kind': 'youtube#channel',
+                'channelId': channel_id
+            }
+        }}
+        self.api.subscriptions().insert(body=resource, part='snippet').execute()
+
+        return True

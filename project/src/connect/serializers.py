@@ -10,12 +10,15 @@ class ConnectionSerializer(serializers.ModelSerializer):
         model = Connection
         fields = ('user_1', 'user_2', 'provider', 'confirmed')
 
-    def validate(self, data):
-        connect_class = getattr(
+    def _get_connect_class(self, provider):
+        return getattr(
             services,
-            '{}Connect'.format(data['provider'].capitalize()),
+            '{}Connect'.format(provider.capitalize()),
             services.DummyConnect
         )
+
+    def validate(self, data):
+        connect_class = self._get_connect_class(data['provider'])
         try:
             connect = connect_class(data['user_1'])
             confirmed = connect.connect(data['user_2'])

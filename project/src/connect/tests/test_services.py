@@ -230,7 +230,7 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_other_user_don_have_youtube_channel(self, mocked_credentials, mocked_client):
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 

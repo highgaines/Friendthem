@@ -62,14 +62,6 @@ class TokensViewSet(ModelViewSet):
         return self.request.user.social_auth.all()
 
 
-def redirect_user_to_app(request):
-    location = 'FriendThem://'
-    response = HttpResponse('', status=302)
-    response['Location'] = location
-
-    return response
-
-
 class UpdateProfileView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
@@ -77,12 +69,14 @@ class UpdateProfileView(UpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
 class UpdateLocationView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LocationSerializer
 
     def get_object(self):
         return self.request.user
+
 
 class NearbyUsersView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -99,6 +93,13 @@ class NearbyUsersView(ListAPIView):
             distance=Distance('last_location', user.last_location)
         ).exclude(id=self.request.user.id)
 
+
+def redirect_user_to_app(request):
+    location = 'FriendThem://'
+    response = HttpResponse('', status=302)
+    response['Location'] = location
+
+    return response
 
 register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()

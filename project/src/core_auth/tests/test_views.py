@@ -275,6 +275,27 @@ class UpdateProfileViewTests(APITestCase):
         assert data['occupation'] == user.occupation
 
 
+class CreateSocialProfileView(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:social_profile')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert 401 == response.status_code
+
+    def test_create_social_profile_for_user(self):
+        data = {'provider': 'snapchat', 'username': 'testuser'}
+        response = self.client.post(self.url, data=data)
+
+        assert 201 == response.status_code
+        social_profile = self.user.social_profiles.get(provider='snapchat')
+        assert 'testuser' == social_profile.username
+
+
+
 class UpdateLocationTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)

@@ -132,12 +132,13 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
         user_1 = self.context['request'].user
         user_2 = obj
         percentage = 0
-        if user_2.social_profiles.count():
+        if user_2.social_profiles.count() or user_1.social_profiles.count():
             percentage = (
                 Connection.objects.filter(
                     user_1=user_1, user_2=user_2
                 ).count() / min(
-                    user_1.social_profiles.count(), user_2.social_profiles.count()
-                )
+                    max(1, user_1.social_profiles.count()),
+                    max(1, user_2.social_profiles.count())
+                ))
             )
         return round(percentage * 100)

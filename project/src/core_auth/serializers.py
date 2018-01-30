@@ -6,15 +6,17 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
+from src.connect.models import Connection
 from src.core_auth.models import SocialProfile
 from src.utils.fields import PointField
 
 User = get_user_model()
 
 class SocialProfileSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     class Meta:
         model = SocialProfile
-        fields = ('provider', 'username')
+        fields = ('user', 'provider', 'username')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -97,6 +99,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email'
         )
 
+
 class HobbiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -112,14 +115,29 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class NearbyUsersSerializer(serializers.ModelSerializer):
     distance = serializers.SerializerMethodField()
+    connection_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'first_name', 'last_name',
             'picture', 'hobbies', 'social_profiles',
-            'last_location', 'distance'
+            'last_location', 'distance', 'connection_percentage'
         )
 
     def get_distance(self, obj):
         return obj.distance.mi
+
+    def get_connection_percentage(self, obj):
+        user_1 = self.context['request'].user
+        user_2 = obj
+        percentage = 0
+        if user_2.social_profiles.count():
+            percentage = (
+                Connection.objects.filter(
+                    user_1=user_1, user_2=user_2
+                ).count() / min(
+                    user_1.social_profiles.count(), user_2.social_profiles.count()
+                )
+            )
+        return round(percentage * 100)

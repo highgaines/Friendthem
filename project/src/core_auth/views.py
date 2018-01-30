@@ -17,7 +17,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from src.core_auth.serializers import (UserSerializer, TokenSerializer,
                                        ProfileSerializer, LocationSerializer,
-                                       NearbyUsersSerializer)
+                                       NearbyUsersSerializer, SocialProfileSerializer)
 
 
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
@@ -70,6 +70,11 @@ class UpdateProfileView(UpdateAPIView):
         return self.request.user
 
 
+class CreateSocialProfileView(CreateAPIView):
+    serializer_class = SocialProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+
 class UpdateLocationView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LocationSerializer
@@ -106,5 +111,6 @@ user_details = UserDetailView.as_view()
 tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
 update_profile = UpdateProfileView.as_view()
+social_profile = CreateSocialProfileView.as_view()
 update_location = UpdateLocationView.as_view()
 nearby_users = NearbyUsersView.as_view()

@@ -29,7 +29,6 @@ class TwitterConnect(BaseConnect):
 
         friendship = self.api.CreateFriendship(user_id=other_user_id, follow=True)
 
-
         if friendship.following:
             return True
         return False

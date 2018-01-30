@@ -140,6 +140,7 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
                 ).count() / min(
                     max(1, user_1.social_profiles.count()),
                     max(1, user_2.social_profiles.count())
-                ))
+                )
             )
+
         return round(percentage * 100)

@@ -164,7 +164,6 @@ SOCIAL_AUTH_PIPELINE = (
 
 )
 
-
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
 SOCIAL_AUTH_USER_FIELD = ['email',]
 

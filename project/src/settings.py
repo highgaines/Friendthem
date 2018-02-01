@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'src.core_auth',
     'src.connect',
+    'src.feed',
 ]
 
 MIDDLEWARE = [

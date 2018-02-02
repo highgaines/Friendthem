@@ -24,7 +24,12 @@ class SocialProfileSerializer(serializers.ModelSerializer):
         provider = obj.provider
         user_social_auth = obj.user.social_auth.filter(provider=provider)
 
-        return user_social_auth[0].uid
+        if len(user_social_auth):
+            provider_uid = user_social_auth[0].uid
+        else:
+            provider_uid = None
+
+        return provider_uid
 
 
 class UserSerializer(serializers.ModelSerializer):

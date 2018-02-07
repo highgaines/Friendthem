@@ -295,7 +295,6 @@ class CreateSocialProfileView(APITestCase):
         assert 'testuser' == social_profile.username
 
 
-
 class UpdateLocationTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)

@@ -67,6 +67,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+
 class SocialProfile(models.Model):
     provider = models.CharField(max_length=32)
 

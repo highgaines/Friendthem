@@ -148,6 +148,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+'''
 SOCIAL_AUTH_PIPELINE = (
     'src.core_auth.pipelines.get_user',
     'social_core.pipeline.social_auth.social_details',
@@ -164,9 +165,10 @@ SOCIAL_AUTH_PIPELINE = (
     'src.core_auth.pipelines.get_youtube_channel'
 
 )
+'''
 
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
-SOCIAL_AUTH_USER_FIELD = ['email',]
+SOCIAL_AUTH_USER_FIELDS = ['email',]
 
 
 SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')

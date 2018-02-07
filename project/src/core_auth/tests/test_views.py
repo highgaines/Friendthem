@@ -347,6 +347,7 @@ class NearbyUsersView(APITestCase):
 
     def test_get_nearby_users(self):
         other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
         mommy.make('SocialProfile', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))

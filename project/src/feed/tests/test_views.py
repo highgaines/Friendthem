@@ -44,6 +44,11 @@ class FeedViewTestCase(APITestCase):
             ]
         )
 
+    def test_404_for_unexistent_user(self):
+        self.other_user.delete()
+        response = self.client.get(self.url)
+        assert 404 == response.status_code
+
     def test_404_for_unexistent_provider(self):
         self.url = reverse('feed:feed', kwargs={'user_id': self.other_user.id, 'provider': 'invalid_provider'})
         response = self.client.get(self.url)

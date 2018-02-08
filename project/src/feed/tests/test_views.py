@@ -11,7 +11,7 @@ class FeedViewTestCase(APITestCase):
         self.user = mommy.make(settings.AUTH_USER_MODEL)
         self.other_user = mommy.make(settings.AUTH_USER_MODEL)
         self.client.force_authenticate(self.user)
-        self.url = reverse('feed:feed', kwargs={'user_id': self.other_user.id})
+        self.url = reverse('feed:feed', kwargs={'user_id': self.other_user.id, 'provider': 'facebook'})
 
     def test_login_required(self):
         self.client.logout()
@@ -19,20 +19,22 @@ class FeedViewTestCase(APITestCase):
 
         assert 401 == response.status_code
 
-    @patch('src.feed.views.FacebookFeed')
-    @patch('src.feed.views.InstagramFeed')
-    def test_get_data_from_services(self, mocked_instagram, mocked_facebook):
-        instagram = Mock()
-        instagram.get_feed.return_value = [{'a': 'b', 'created_time': 1}, {'d': 'e', 'created_time': 0}]
-        mocked_instagram.return_value = instagram
-
+    @patch('src.feed.views.services')
+    def test_get_data_from_facebook_service(self, mocked_services):
         facebook = Mock()
-        facebook.get_feed.return_value = [{'a': 'c', 'created_time': 2}]
-        mocked_facebook.return_value = facebook
+        facebook.get_feed.return_value = [
+            {'a': 'b', 'created_time': 1},
+            {'a': 'c', 'created_time': 2},
+            {'d': 'e', 'created_time': 0}
+        ]
+        mocked_services.FacebookFeed.return_value = facebook
 
         response = self.client.get(self.url)
         assert 200 == response.status_code
         content = response.json()
+
+        mocked_services.FacebookFeed.assert_called_with(self.user)
+        facebook.get_feed.assert_called_with(self.other_user)
 
         assert (
             content['data'] == [
@@ -41,3 +43,8 @@ class FeedViewTestCase(APITestCase):
                 {'d': 'e', 'created_time': 0}
             ]
         )
+
+    def test_404_for_unexistent_provider(self):
+        self.url = reverse('feed:feed', kwargs={'user_id': self.other_user.id, 'provider': 'invalid_provider'})
+        response = self.client.get(self.url)
+        assert 404 == response.status_code

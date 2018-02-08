@@ -32,10 +32,11 @@ class InstagramFeed(object):
 
     @staticmethod
     def format_data(item):
+        caption = item.get('caption') or {}
         return {
             'img_url': item['images']['standard_resolution']['url'],
             'num_likes': item['likes']['count'],
-            'description': item['text'],
+            'description': caption.get('text'),
             'date_posted': int(item['created_time']),
             'type': item['type'],
             'provider': 'instagram',
@@ -64,7 +65,7 @@ class FacebookFeed(object):
 
         fields = [
             'likes.summary(true)', 'caption', 'description', 'link',
-            'name', 'picture', 'created_time', 'status_type',
+            'name', 'picture', 'created_time', 'status_type', 'message',
         ]
         content = self.api.get_connections(other_user_uid, 'posts', fields=','.join(fields))
         return [self.format_data(d) for d in content['data']]
@@ -74,7 +75,7 @@ class FacebookFeed(object):
         return {
             'img_url': item.get('picture'),
             'num_likes': item['likes']['summary']['total_count'],
-            'description': item['name'],
+            'description': item.get('name') or item.get('message'),
             'date_posted': int(maya.parse(item['created_time']).epoch),
             'type': item['status_type'],
             'provider': 'facebook',

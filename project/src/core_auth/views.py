@@ -93,7 +93,8 @@ class NearbyUsersView(ListAPIView):
         distance = D(mi=miles)
 
         return get_user_model().objects.filter(
-            last_location__distance_lte=(user.last_location, distance)
+            last_location__distance_lte=(user.last_location, distance),
+            ghost_mode=False,
         ).annotate(
             distance=Distance('last_location', user.last_location)
         ).exclude(id=self.request.user.id)

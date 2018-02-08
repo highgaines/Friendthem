@@ -43,6 +43,7 @@ class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     username = None
 
+    # Profile
     picture = models.URLField(blank=True, null=True)
     hobbies = ArrayField(models.CharField(max_length=64), blank=True, null=True)
     hometown = models.CharField(max_length=128, blank=True, null=True)
@@ -50,6 +51,10 @@ class User(AbstractUser):
     phone_number = PhoneNumberField(blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     personal_email = models.EmailField(blank=True, null=True)
+
+    # Settings
+    ghost_mode = models.BooleanField(default=False)
+    notifications = models.BooleanField(default=True)
 
     last_location = PointField(
         geography=True, blank=True, null=True,
@@ -61,6 +66,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
 
 class SocialProfile(models.Model):
     provider = models.CharField(max_length=32)

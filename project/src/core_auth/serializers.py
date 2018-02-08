@@ -35,7 +35,8 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 'client_id', 'client_secret', 'grant_type',
             'picture', 'hobbies', 'social_profiles',
             'hobbies', 'hometown', 'occupation',
-            'phone_number', 'age', 'personal_email'
+            'phone_number', 'age', 'personal_email',
+            'ghost_mode', 'notifications',
         )
 
     def validate_username(self, value):
@@ -97,7 +98,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = (
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
-            'first_name', 'last_name'
+            'first_name', 'last_name', 'ghost_mode', 'notifications'
         )
 
 

@@ -1,1 +1,0 @@
-django-phonenumber-field==2.0.0

@@ -14,3 +14,4 @@ maya==0.3.3
 requests==2.18.4
 facebook-sdk==2.0.0
 django-phonenumber-field==2.0.0
+onesignal-sdk==0.1.1

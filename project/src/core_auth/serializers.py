@@ -14,9 +14,22 @@ User = get_user_model()
 
 class SocialProfileSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    uid = serializers.SerializerMethodField()
+
     class Meta:
         model = SocialProfile
-        fields = ('user', 'provider', 'username')
+        fields = ('user', 'provider', 'username', 'uid')
+
+    def get_uid(self, obj):
+        provider = obj.provider
+        user_social_auth = obj.user.social_auth.filter(provider=provider)
+
+        if len(user_social_auth):
+            provider_uid = user_social_auth[0].uid
+        else:
+            provider_uid = None
+
+        return provider_uid
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -118,6 +131,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class NearbyUsersSerializer(serializers.ModelSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
+    social_profiles = SocialProfileSerializer(read_only=True, many=True)
 
     class Meta:
         model = User

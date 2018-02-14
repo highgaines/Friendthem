@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'src.core_auth',
     'src.connect',
     'src.feed',
+    'src.notifications',
 ]
 
 MIDDLEWARE = [

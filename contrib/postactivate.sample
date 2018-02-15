@@ -1,0 +1,19 @@
+#!/bin/bash
+# This hook is sourced after this virtualenv is activated.
+
+export DJANGO_SECRET_KEY="<DJANGO_SECRET_KEY>"
+export DEBUG="True"
+export DATABASE_URL="postgres://<user>:<password>@<host>:5432/friendthem" # format postgres://USER:PASSWORD@HOST:PORT/NAME
+export ALLOWED_HOSTS="*"
+export FACEBOOK_KEY="<FACEBOOK_KEY>" 
+export FACEBOOK_SECRET="<FACEBOOK_SECRET>"
+export GOOGLE_OAUTH2_KEY="<GOOGLE_KEY>"
+export GOOGLE_OAUTH2_SECRET="<GOOGLE_SECRET>"
+export INSTAGRAM_KEY="<INSTAGRAM_KEY>"
+export INSTAGRAM_SECRET="<INSTAGRAM_SECRET>"
+export LINKEDIN_KEY="<LINKEDIN_KEY>"
+export LINKEDIN_SECRET="<LINKEDIN_SECRET>"
+export TWITTER_KEY="<TWITTER_KEY>"
+export TWITTER_SECRET="<TWITTER_SECRET>"
+export ONESIGNAL_APP_ID="<ONESIGNAL_ID>"
+export ONESIGNAL_APP_KEY="<ONESIGNAL_KEY>"

@@ -11,7 +11,7 @@ notifications_name = apps.get_app_config('notifications').verbose_name
 urlpatterns = [
     path('', include(('src.core_auth.urls', auth_name), namespace='user')),
     path('connect/', include(('src.connect.urls', connect_name), namespace='connect')),
-    path('notification/', include(('src.notifications.urls', notifications_name), namespace='notifications')),
+    path('notifications/', include(('src.notifications.urls', notifications_name), namespace='notifications')),
     path('feed/', include(('src.feed.urls', connect_name), namespace='feed')),
     path('auth/', include('rest_framework_social_oauth2.urls')),
     path('admin/', admin.site.urls),

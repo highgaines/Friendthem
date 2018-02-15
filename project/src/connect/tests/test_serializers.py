@@ -42,7 +42,9 @@ class ConnectionSerializerTestCase(APITestCase):
         assert serializer.errors['provider'][0] == '"provider" is not a valid choice.'
 
     @patch('src.connect.serializers.services')
-    def test_serializer_validation_calls_service_connect_for_youtube(self, mocked_services):
+    @patch('src.connect.serializers.notify_user')
+    def test_serializer_validation_calls_service_connect_for_youtube(self, mocked_notify, mocked_services):
+        mocked_notify.return_value = True
         youtube_connect = Mock()
         youtube_connect.connect.return_value = True
         mocked_services.YoutubeConnect = youtube_connect
@@ -59,17 +61,15 @@ class ConnectionSerializerTestCase(APITestCase):
             data={'user_2': user_2.id, 'provider': 'youtube'}, context={'request': request}
         )
         assert serializer.is_valid() is True
+        assert serializer.data == {'user_2': 2, 'provider': 'youtube', 'confirmed': True, 'notified': True}
 
         youtube_connect.assert_called_once_with(user_1)
         youtube_connect.return_value.connect.assert_called_once_with(user_2)
 
-        connection = Connection.objects.get(
-            user_1=user_1, user_2=user_2, provider='facebook'
-        )
-        assert connection.confirmed is True
+        mocked_notify.assert_called_once_with(user_1, user_2, '{} wants to connect with you. Would you like to return?'.format(user_1.get_full_name()))
 
     @patch('src.connect.serializers.services')
-    def test_serializer_validation_calls_service_connect_for_youtube(self, mocked_services):
+    def test_serializer_validation_raises_error_for_service_error(self, mocked_services):
         social_1 = mommy.make('UserSocialAuth')
         user_1 = social_1.user
         social_2 = mommy.make('UserSocialAuth')
@@ -86,4 +86,4 @@ class ConnectionSerializerTestCase(APITestCase):
             data={'user_2': user_2.id, 'provider': 'youtube'}, context={'request': request}
         )
         assert serializer.is_valid() is False
-        assert serializer.errors == {'non_field_errors': ['Credentials not found for user "1" in provider "youtube".']}
+        assert serializer.errors == {'non_field_errors': ['Credentials not found for user "{}" in provider "youtube".'.format(user_1.id)]}

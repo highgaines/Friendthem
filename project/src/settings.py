@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'src.core_auth',
     'src.connect',
     'src.feed',
+    'src.notifications',
 ]
 
 MIDDLEWARE = [
@@ -182,3 +183,6 @@ SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
 
 SOCIAL_AUTH_TWITTER_KEY = config('TWITTER_KEY')
 SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
+
+ONESIGNAL_APP_ID = config('ONESIGNAL_APP_ID')
+ONESIGNAL_APP_KEY = config('ONESIGNAL_APP_KEY')

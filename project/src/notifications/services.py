@@ -17,11 +17,12 @@ def notify_user(sender, recipient, msg):
             'app_id': settings.ONESIGNAL_APP_ID
         })
 
-        notification = onesignal.Notification(content={'en': msg})
+        notification = onesignal.Notification(contents={'en': msg})
         notification.set_parameter('headings', {'en': 'FriendThem'})
 
         notification.set_target_devices(list(device_ids))
 
         response = client.send_notification(notification)
+
         return response.ok
     return recipient.notifications and bool(device_ids)

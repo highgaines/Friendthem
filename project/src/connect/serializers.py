@@ -31,14 +31,12 @@ class ConnectionSerializer(serializers.ModelSerializer):
         data['confirmed'] = confirmed
         return data
 
-    def get_notified(self, data):
-        user_1 = User.objects.get(id=data.user_1_id)
-        user_2 = User.objects.get(id=data.user_2_id)
+    def get_notified(self, obj):
         msg = '{} wants to connect with you. Would you like to return?'.format(
-            user_1.get_full_name()
+            obj.user_1.get_full_name()
         )
 
         try:
-            return notify_user(user_1, user_2, msg)
+            return notify_user(obj.user_1, obj.user_2, msg)
         except:
             return False

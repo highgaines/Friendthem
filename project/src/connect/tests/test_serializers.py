@@ -47,7 +47,7 @@ class ConnectionSerializerTestCase(APITestCase):
         mocked_notify.return_value = True
         youtube_connect = Mock()
         youtube_connect.connect.return_value = True
-        mocked_services.YoutubeConnect = youtube_connect
+        mocked_services.YoutubeConnect.return_value = youtube_connect
 
         social_1 = mommy.make('UserSocialAuth')
         user_1 = social_1.user
@@ -61,10 +61,11 @@ class ConnectionSerializerTestCase(APITestCase):
             data={'user_2': user_2.id, 'provider': 'youtube'}, context={'request': request}
         )
         assert serializer.is_valid() is True
+        connection = serializer.save()
         assert serializer.data == {'user_2': 2, 'provider': 'youtube', 'confirmed': True, 'notified': True}
 
-        youtube_connect.assert_called_once_with(user_1)
-        youtube_connect.return_value.connect.assert_called_once_with(user_2)
+        mocked_services.YoutubeConnect.assert_called_once_with(user_1)
+        youtube_connect.connect.assert_called_once_with(user_2)
 
         mocked_notify.assert_called_once_with(user_1, user_2, '{} wants to connect with you. Would you like to return?'.format(user_1.get_full_name()))
 

@@ -12,11 +12,8 @@ class DeviceSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     recipient = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    sender = serializers.SerializerMethodField(read_only=True)
+    sender = UserSerializer()
 
     class Meta:
         model = Notification
         fields = ('sender', 'recipient', 'message',)
-
-    def get_sender(self, obj):
-        return UserSerializer(User.objects.get(id=obj.sender_id)).data

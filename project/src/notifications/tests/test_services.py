@@ -31,7 +31,7 @@ class NotifyUserTestCase(TestCase):
             'app_id': settings.ONESIGNAL_APP_ID
         })
 
-        onesignal.Notification.assert_called_once_with(content={'en': self.msg})
+        onesignal.Notification.assert_called_once_with(contents={'en': self.msg})
         notification.set_parameter.assert_called_once_with(
             'headings', {'en': 'FriendThem'}
         )

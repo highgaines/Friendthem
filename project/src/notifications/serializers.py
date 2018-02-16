@@ -12,11 +12,11 @@ class DeviceSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     recipient = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    sender_data = serializers.SerializerMethodField(read_only=True)
+    sender = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Notification
-        fields = ('sender', 'recipient', 'message', 'sender_data')
+        fields = ('sender', 'recipient', 'message',)
 
-    def get_sender_data(self, obj):
+    def get_sender(self, obj):
         return UserSerializer(User.objects.get(id=obj.sender_id)).data

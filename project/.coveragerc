@@ -1,0 +1,8 @@
+[run]
+omit =
+    */tests/*
+    */migrations/*
+    src/wsgi.py
+    */apps.py
+[report]
+exclude_lines = raise NotImplemented

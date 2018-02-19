@@ -41,11 +41,29 @@ class UserSerializerTests(APITestCase):
         assert serializer.is_valid() is False
         assert 'username' in serializer.errors
 
-    def test_retrive_data(self):
+    def test_retrieve_data_with_social_profile_without_social_user(self):
         user = mommy.make(User, email='test@example.com')
+        social_profile = mommy.make('SocialProfile', user=user, provider='snapchat')
         serializer = UserSerializer(user)
         assert 'id' in serializer.data
         assert 'email' in serializer.data
         assert 'first_name' in serializer.data
         assert 'last_name' in serializer.data
         assert 'password' not in serializer.data
+        assert 'social_profiles' in serializer.data
+        assert 1 == len(serializer.data['social_profiles'])
+        assert serializer.data['social_profiles'][0]['uid'] is None
+
+    def test_retrieve_data_with_social_profile_and_social_user(self):
+        user = mommy.make(User, email='test@example.com')
+        social_profile = mommy.make('SocialProfile', user=user, provider='snapchat')
+        social_user = mommy.make('UserSocialAuth', user=user, provider='snapchat')
+        serializer = UserSerializer(user)
+        assert 'id' in serializer.data
+        assert 'email' in serializer.data
+        assert 'first_name' in serializer.data
+        assert 'last_name' in serializer.data
+        assert 'password' not in serializer.data
+        assert 'social_profiles' in serializer.data
+        assert 1 == len(serializer.data['social_profiles'])
+        assert social_user.uid == serializer.data['social_profiles'][0]['uid']

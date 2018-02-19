@@ -65,6 +65,21 @@ class TwitterConnectTestCase(TestCase):
         )
 
     @patch('src.connect.services.twitter.twitter')
+    def test_connect_calls_create_unconfirmed_friendship_on_twitter(self, mocked_twitter):
+        api_object = Mock()
+        friendship = Mock()
+        friendship.following = False
+        api_object.CreateFriendship.return_value = friendship
+        mocked_twitter.Api.return_value = api_object
+
+        connect = TwitterConnect(self.user)
+        connection = connect.connect(self.other_user)
+        assert connection is False
+        api_object.CreateFriendship.assert_called_once_with(
+            user_id=self.other_social_auth.uid, follow=True
+        )
+
+    @patch('src.connect.services.twitter.twitter')
     def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_twitter):
         api_object = Mock()
         friendship = Mock()
@@ -131,6 +146,21 @@ class InstagramConnectTestCase(TestCase):
         connect = InstagramConnect(self.user)
         connection = connect.connect(self.other_user)
         assert connection is True
+        api_object.follow_user.assert_called_once_with(
+            user_id=self.other_social_auth.uid,
+        )
+
+    @patch('src.connect.services.instagram.InstagramAPI')
+    def test_connect_calls_creates_unconfirmed_follow_on_instagram(self, mocked_instagram):
+        api_object = Mock()
+        follow = [Mock()]
+        follow[0].outgoing_status = 'unconfirmed'
+        api_object.follow_user.return_value = follow
+        mocked_instagram.return_value = api_object
+
+        connect = InstagramConnect(self.user)
+        connection = connect.connect(self.other_user)
+        assert connection is False
         api_object.follow_user.assert_called_once_with(
             user_id=self.other_social_auth.uid,
         )

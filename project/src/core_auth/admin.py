@@ -7,7 +7,7 @@ from mapwidgets.widgets import GooglePointFieldWidget
 User = get_user_model()
 class UserAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('User Data', {'fields': ('email', 'first_name', 'last_name')}),
+        ('User Data', {'fields': ('email', ('first_name', 'last_name'), 'featured')}),
         ('Profile', {'fields': (
             'picture', 'hobbies', 'hometown', 'occupation', 'phone_number', 'age',
             'personal_email'
@@ -16,8 +16,9 @@ class UserAdmin(admin.ModelAdmin):
         ('Location', {'fields': ('last_location',)})
     )
     list_display = (
-        'id', 'email', 'ghost_mode', 'notifications', 'latitude', 'longitude'
+        'id', 'email', 'featured', 'ghost_mode', 'notifications', 'latitude', 'longitude'
     )
+    list_filter = ('featured',)
 
     def latitude(self, obj):
         if obj.last_location:

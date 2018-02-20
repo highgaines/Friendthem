@@ -20,8 +20,10 @@ from src.core_auth.serializers import (UserSerializer, TokenSerializer,
                                        NearbyUsersSerializer, SocialProfileSerializer)
 
 
+User = get_user_model()
+
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
-    model = get_user_model()
+    model = User
     permission_classes = [AllowAny]
     serializer_class = UserSerializer
 
@@ -92,12 +94,12 @@ class NearbyUsersView(ListAPIView):
         miles = self.request.GET.get('miles', 200)
         distance = D(mi=miles)
 
-        return get_user_model().objects.filter(
+        return (User.objects.filter(
             last_location__distance_lte=(user.last_location, distance),
             ghost_mode=False,
         ).annotate(
             distance=Distance('last_location', user.last_location)
-        ).exclude(id=self.request.user.id)
+        ) | User.objects.filter(featured=True)).exclude(id=self.request.user.id)
 
 
 def redirect_user_to_app(request):

@@ -136,13 +136,14 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'first_name', 'last_name',
+            'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'last_location', 'distance', 'connection_percentage'
         )
 
     def get_distance(self, obj):
-        return obj.distance.mi
+        if getattr(obj, 'distance', None):
+            return obj.distance.mi
 
     def get_connection_percentage(self, obj):
         user_1 = self.context['request'].user

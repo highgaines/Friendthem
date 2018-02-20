@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'social_django',
     'rest_framework_social_oauth2',
     'phonenumber_field',
+    'mapwidgets',
     'src.core_auth',
     'src.connect',
     'src.feed',
@@ -200,3 +201,11 @@ SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
 
 ONESIGNAL_APP_ID = config('ONESIGNAL_APP_ID')
 ONESIGNAL_APP_KEY = config('ONESIGNAL_APP_KEY')
+
+MAP_WIDGETS = {
+    'GooglePointFieldWidget': (
+        ('zoom', 12),
+        ('mapCenterLocationName', 'new york'),
+    ),
+    'GOOGLE_MAP_API_KEY': config('GOOGLE_MAPS_API_KEY')
+}

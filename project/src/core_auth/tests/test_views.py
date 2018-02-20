@@ -361,6 +361,24 @@ class NearbyUsersViewTestCase(APITestCase):
         assert 0.006917072471764893 == other_user_data['distance']
         assert 100 == other_user_data['connection_percentage']
 
+    def test_get_nearby_and_featured_users(self):
+        other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
+        mommy.make('SocialProfile', user=other_user_1)
+        mommy.make('Connection', user_1=self.user, user_2=other_user_1)
+        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
+        featured_user = mommy.make(User, featured=True)
+        response = self.client.get(self.url + '?miles=200')
+        assert 200 == response.status_code
+
+        assert 2 == len(response.json())
+        other_user_data = response.json()[0]
+
+        assert other_user_data['id'] == other_user_1.id
+        assert 'distance' in other_user_data
+        assert 0.006917072471764893 == other_user_data['distance']
+        assert 100 == other_user_data['connection_percentage']
+
 
 class RedirectToAppViewTests(APITestCase):
     def test_view_redirects_to_app(self):

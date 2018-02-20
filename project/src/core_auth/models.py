@@ -61,6 +61,8 @@ class User(AbstractUser):
         help_text="Represented as (longitude, latitude)"
     )
 
+    featured = models.BooleanField(default=False)
+
     objects = UserManager()
 
 

@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 
@@ -19,6 +19,7 @@ class UserAdmin(admin.ModelAdmin):
         'id', 'email', 'featured', 'ghost_mode', 'notifications', 'latitude', 'longitude'
     )
     list_filter = ('featured',)
+    actions = ('mark_as_featured', 'unmark_as_featured')
 
     def latitude(self, obj):
         if obj.last_location:
@@ -27,6 +28,19 @@ class UserAdmin(admin.ModelAdmin):
     def longitude(self, obj):
         if obj.last_location:
             return obj.last_location.y
+
+    def mark_as_featured(self, request, queryset):
+        msg = 'Users marked as featured.'
+        queryset.update(featured=True)
+        self.message_user(request, msg, messages.SUCCESS)
+    mark_as_featured.shirt_description = 'Mark as featured.'
+
+    def unmark_as_featured(self, request, queryset):
+        msg = 'Users unmarked as featured.'
+        queryset.update(featured=False)
+        self.message_user(request, msg, messages.SUCCESS)
+    mark_as_featured.shirt_description = 'Unmark as featured.'
+
 
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}

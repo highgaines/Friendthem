@@ -5,7 +5,7 @@ from django.db import models
 class Connection(models.Model):
     FACEBOOK = 'facebook'
     INSTAGRAM = 'instagram'
-    TWITTER = 'Twitter'
+    TWITTER = 'twitter'
     YOUTUBE = 'youtube'
     SNAPCHAT = 'snapchat'
 

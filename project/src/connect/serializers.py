@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from src.connect.models import Connection
+from src.core_auth.models import User
 from src.connect import services
 from src.notifications.services import notify_user
 
@@ -30,12 +31,12 @@ class ConnectionSerializer(serializers.ModelSerializer):
         data['confirmed'] = confirmed
         return data
 
-    def get_notified(self, data):
+    def get_notified(self, obj):
         msg = '{} wants to connect with you. Would you like to return?'.format(
-            data['user_1'].get_full_name()
+            obj.user_1.get_full_name()
         )
 
         try:
-            return notify_user(data['user_1'], data['user_2'], msg)
+            return notify_user(obj.user_1, obj.user_2, msg)
         except:
             return False

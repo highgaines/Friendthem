@@ -26,3 +26,27 @@ class ConnectionAPIViewTestCase(APITestCase):
         device = Device.objects.first()
         assert 'abcdef1234' == device.device_id
         assert self.user == device.user
+
+class NotificationsViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.other_user = mommy.make(User)
+        self.notification = mommy.make(
+            'Notification', recipient=self.user, sender=self.other_user
+        )
+        self.client.force_authenticate(self.user)
+
+        self.url = reverse('notifications:notifications')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_list_notifications(self):
+        response = self.client.get(self.url)
+        assert 200 == response.status_code
+        content = response.json()
+        assert 1 == len(content)
+        assert content[0]['message'] == self.notification.message
+        assert content[0]['sender']['id'] == self.other_user.id

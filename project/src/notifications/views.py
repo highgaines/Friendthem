@@ -12,7 +12,7 @@ class ListNotificationsView(ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        self.request.user.received_notifications.all()
+        return self.request.user.received_notifications.all()
 
 add_device_view = AddDeviceView.as_view()
 notifications_view = ListNotificationsView.as_view()

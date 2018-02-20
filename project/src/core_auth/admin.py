@@ -15,6 +15,18 @@ class UserAdmin(admin.ModelAdmin):
         ('Settings', {'fields': (('ghost_mode', 'notifications'),)}),
         ('Location', {'fields': ('last_location',)})
     )
+    list_display = (
+        'id', 'email', 'ghost_mode', 'notifications', 'latitude', 'longitude'
+    )
+
+    def latitude(self, obj):
+        if obj.last_location:
+            return obj.last_location.x
+
+    def longitude(self, obj):
+        if obj.last_location:
+            return obj.last_location.y
+
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
     }

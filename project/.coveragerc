@@ -1,0 +1,10 @@
+[run]
+omit =
+    */tests/*
+    */migrations/*
+    src/wsgi.py
+    src/settings.py
+    */urls.py
+    */apps.py
+[report]
+exclude_lines = raise NotImplemented

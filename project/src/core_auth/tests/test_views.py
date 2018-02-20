@@ -332,7 +332,7 @@ class UpdateLocationTests(APITestCase):
         assert 'Point must have `lng` and `lat` keys.' == response.json()['last_location'][0]
 
 
-class NearbyUsersView(APITestCase):
+class NearbyUsersViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User, last_location=GEOSGeometry('POINT (0 0)'))
         mommy.make('SocialProfile', user=self.user)

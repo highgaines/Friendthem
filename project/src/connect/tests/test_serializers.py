@@ -43,6 +43,35 @@ class ConnectionSerializerTestCase(APITestCase):
 
     @patch('src.connect.serializers.services')
     @patch('src.connect.serializers.notify_user')
+    def test_return_notified_false_if_error_on_notification(self, mocked_notify, mocked_services):
+        mocked_notify.side_effect = Exception()
+        youtube_connect = Mock()
+        youtube_connect.connect.return_value = True
+        mocked_services.YoutubeConnect.return_value = youtube_connect
+
+        social_1 = mommy.make('UserSocialAuth')
+        user_1 = social_1.user
+        social_2 = mommy.make('UserSocialAuth')
+        user_2 = social_2.user
+
+        request = Mock()
+        request.user = user_1
+
+        serializer = ConnectionSerializer(
+            data={'user_2': user_2.id, 'provider': 'youtube'}, context={'request': request}
+        )
+        assert serializer.is_valid() is True
+        connection = serializer.save()
+        assert serializer.data == {'user_2': user_2.id, 'provider': 'youtube', 'confirmed': True, 'notified': False}
+
+        mocked_services.YoutubeConnect.assert_called_once_with(user_1)
+        youtube_connect.connect.assert_called_once_with(user_2)
+
+        mocked_notify.assert_called_once_with(user_1, user_2, '{} wants to connect with you. Would you like to return?'.format(user_1.get_full_name()))
+
+
+    @patch('src.connect.serializers.services')
+    @patch('src.connect.serializers.notify_user')
     def test_serializer_validation_calls_service_connect_for_youtube(self, mocked_notify, mocked_services):
         mocked_notify.return_value = True
         youtube_connect = Mock()
@@ -62,7 +91,7 @@ class ConnectionSerializerTestCase(APITestCase):
         )
         assert serializer.is_valid() is True
         connection = serializer.save()
-        assert serializer.data == {'user_2': 2, 'provider': 'youtube', 'confirmed': True, 'notified': True}
+        assert serializer.data == {'user_2': user_2.id, 'provider': 'youtube', 'confirmed': True, 'notified': True}
 
         mocked_services.YoutubeConnect.assert_called_once_with(user_1)
         youtube_connect.connect.assert_called_once_with(user_2)

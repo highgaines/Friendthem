@@ -1,4 +1,5 @@
 import pytest
+from model_mommy import mommy
 
 from unittest.mock import patch, MagicMock
 from django.http import JsonResponse
@@ -40,6 +41,16 @@ class RESTStateOAuth2MixinTests(APITestCase):
         backend.session = session
         token = backend.get_unauthorized_token()
         assert token == {'oauth_token': 'unauthed_token'}
+
+    def test_get_unauthorized_token_is_None(self):
+        session = {}
+        session['_utoken'] = {}
+        backend = RESTStateBackend()
+        backend.OAUTH_TOKEN_PARAMETER_NAME = 'oauth_token'
+        backend.data = {'oauth_token': 'unauthed_token'}
+        backend.session = session
+        with pytest.raises(AuthTokenError):
+            token = backend.get_unauthorized_token()
 
     def test_get_unauthed_token_auth_token_error_if_tokens_mismatch(self):
         session = {}
@@ -116,3 +127,13 @@ class RESTStateOAuth2MixinTests(APITestCase):
         uri = backend.get_redirect_uri(state)
 
         assert uri == 'http://redirect_uri?state=state'
+
+    @patch.object(RESTStateBackend, 'validate_state')
+    @patch.object(BaseOAuth2, 'auth_complete')
+    def test_auth_complete_injects_user_for_pipeline(self, super_auth_complete, validate_state):
+        user = mommy.make(User)
+        backend = RESTStateBackend()
+        backend.session = {'_user_id': user.id}
+        response = backend.auth_complete()
+        validate_state.assert_called_once_with()
+        super_auth_complete.assert_called_once_with(user=user)

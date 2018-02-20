@@ -8,3 +8,5 @@ e2e:
 
 e2e-seed:
 	pg_dump -Fc friendthem > e2e-seed.dump
+coverage:
+	cd project && pytest --cov=src && cd -

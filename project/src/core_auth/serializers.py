@@ -171,9 +171,9 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
         )
 
     def get_phone_number(self, obj):
-        if getattr(self.context['request'], 'user') == obj and not obj.private_phone:
+        if getattr(self.context['request'], 'user') == obj or not obj.private_phone:
             return obj.phone_number
 
     def get_personal_email(self, obj):
-        if getattr(self.context['request'], 'user') == obj and not obj.private_email:
+        if getattr(self.context['request'], 'user') == obj or not obj.private_email:
             return obj.personal_email

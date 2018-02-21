@@ -1,4 +1,6 @@
-import requests, facebook, maya
+import facebook, maya, requests, twitter
+
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
@@ -42,12 +44,13 @@ class InstagramFeed(object):
             'provider': 'instagram',
         }
 
+
 class FacebookFeed(object):
     provider = 'facebook'
     def __init__(self, user):
-        self.api = self.authenticate(user)
+        self.api = self._authenticate(user)
 
-    def authenticate(self, user):
+    def _authenticate(self, user):
         try:
             access_token = user.social_auth.get(
                 provider='facebook'
@@ -79,4 +82,46 @@ class FacebookFeed(object):
             'date_posted': int(maya.parse(item['created_time']).epoch),
             'type': item['status_type'],
             'provider': 'facebook',
+        }
+
+
+class TwitterFeed(object):
+    provider = 'twitter'
+    def __init__(self, user):
+        self.api = self._authenticate(user)
+
+    def _authenticate(self, user):
+        try:
+            social_auth = user.social_auth.get(provider=self.provider)
+            token_key = social_auth.extra_data.get('access_token', {})['oauth_token']
+            token_secret =  social_auth.extra_data.get('access_token', {})['oauth_token_secret']
+        except (ObjectDoesNotExist, KeyError):
+            raise CredentialsNotFound(self.provider, user)
+
+        return twitter.Api(
+            consumer_key=settings.SOCIAL_AUTH_TWITTER_KEY,
+            consumer_secret=settings.SOCIAL_AUTH_TWITTER_SECRET,
+            access_token_key=token_key, access_token_secret=token_secret,
+        )
+
+    def get_feed(self, other_user):
+
+        try:
+            other_user_uid = other_user.social_auth.get(provider=self.provider).uid
+        except ObjectDoesNotExist:
+            raise SocialUserNotFound(self.provider, other_user)
+
+        content = self.api.GetUserTimeline(user_id=other_user_uid)
+
+        return [self.format_data(status) for status in content]
+
+    @staticmethod
+    def format_data(item):
+        return {
+            'img_url': item.media,
+            'num_likes': item.favourite_count,
+            'description': item.text,
+            'date_posted': item.created_at_in_seconds,
+            'type': 'status',
+            'provider': self.provider,
         }

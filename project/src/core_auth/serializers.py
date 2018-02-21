@@ -46,10 +46,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'password', 'first_name',
             'last_name', 'client_id', 'client_secret', 'grant_type',
-            'picture', 'hobbies', 'social_profiles',
+            'picture', 'social_profiles',
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
-            'ghost_mode', 'notifications',
+            'ghost_mode', 'notifications', 'private_email', 'private_phone'
         )
 
     def validate_username(self, value):
@@ -115,18 +115,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
-class HobbiesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('hobbies',)
-
-
 class LocationSerializer(serializers.ModelSerializer):
     last_location = PointField()
 
     class Meta:
         model = User
         fields = ('last_location',)
+
 
 class NearbyUsersSerializer(serializers.ModelSerializer):
     distance = serializers.SerializerMethodField()
@@ -138,7 +133,7 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
-            'last_location', 'distance', 'connection_percentage'
+            'last_location', 'distance', 'connection_percentage',
         )
 
     def get_distance(self, obj):
@@ -160,3 +155,25 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
             )
 
         return round(percentage * 100)
+
+
+class RetrieveUserSerializer(serializers.ModelSerializer):
+    phone_number = serializers.SerializerMethodField()
+    personal_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name',
+            'picture', 'social_profiles',
+            'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email',
+        )
+
+    def get_phone_number(self, obj):
+        if getattr(self.context['request'], 'user') == obj or not obj.private_phone:
+            return obj.phone_number
+
+    def get_personal_email(self, obj):
+        if getattr(self.context['request'], 'user') == obj or not obj.private_email:
+            return obj.personal_email

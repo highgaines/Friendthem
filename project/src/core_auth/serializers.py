@@ -154,3 +154,26 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
             )
 
         return round(percentage * 100)
+
+class RetrieveUserSerializer(serializers.ModelSerializer):
+    phone_number = serializers.SerializerMethodField()
+    personal_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name',
+            'picture', 'social_profiles',
+            'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email',
+        )
+
+    def get_phone_number(self, obj):
+        if getattr(self.context['request'], 'user') == obj and not obj.private_phone:
+            return obj.phone_number
+
+    def get_personal_email(self, obj):
+        if getattr(self.context['request'], 'user') == obj and not obj.private_email:
+            return obj.personal_email
+
+

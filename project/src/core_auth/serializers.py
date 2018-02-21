@@ -115,12 +115,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
-class HobbiesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('hobbies',)
-
-
 class LocationSerializer(serializers.ModelSerializer):
     last_location = PointField()
 

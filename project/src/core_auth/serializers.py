@@ -122,6 +122,7 @@ class LocationSerializer(serializers.ModelSerializer):
         model = User
         fields = ('last_location',)
 
+
 class NearbyUsersSerializer(serializers.ModelSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
@@ -155,6 +156,7 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
 
         return round(percentage * 100)
 
+
 class RetrieveUserSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     personal_email = serializers.SerializerMethodField()
@@ -175,5 +177,3 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     def get_personal_email(self, obj):
         if getattr(self.context['request'], 'user') == obj and not obj.private_email:
             return obj.personal_email
-
-

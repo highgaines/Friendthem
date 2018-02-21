@@ -132,7 +132,7 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
-            'last_location', 'distance', 'connection_percentage'
+            'last_location', 'distance', 'connection_percentage',
         )
 
     def get_distance(self, obj):

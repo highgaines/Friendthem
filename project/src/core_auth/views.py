@@ -96,10 +96,10 @@ class NearbyUsersView(ListAPIView):
 
         return (User.objects.filter(
             last_location__distance_lte=(user.last_location, distance),
-            ghost_mode=False,
+            ghost_mode=False) | User.objects.filter(featured=True)
         ).annotate(
             distance=Distance('last_location', user.last_location)
-        ) | User.objects.filter(featured=True)).exclude(id=self.request.user.id)
+        ).exclude(id=self.request.user.id)
 
 
 def redirect_user_to_app(request):

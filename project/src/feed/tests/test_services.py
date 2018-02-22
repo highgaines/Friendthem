@@ -2,10 +2,12 @@ import pytest, responses
 from unittest.mock import Mock, patch
 from model_mommy import mommy
 
+from twitter.models import Status
+
 from django.conf import settings
 from rest_framework.test import APITestCase
 
-from src.feed.services import InstagramFeed, FacebookFeed
+from src.feed.services import InstagramFeed, FacebookFeed, TwitterFeed
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
 class InstagramFeedTestCase(APITestCase):
@@ -68,6 +70,7 @@ class FacebookFeedTestCase(APITestCase):
         assert mocked_facebook.GraphAPI.called_once_with('fb_access_token')
         assert feed.api == api
 
+
     def test_initialization_fails_if_social_user_does_not_exist(self):
         self.facebook_user.delete()
         with pytest.raises(CredentialsNotFound):
@@ -92,5 +95,57 @@ class FacebookFeedTestCase(APITestCase):
     def test_get_feed_raises_error_if_other_fb_user_does_not_exist(self):
         other_user = mommy.make(settings.AUTH_USER_MODEL)
         feed = FacebookFeed(self.user)
+        with pytest.raises(SocialUserNotFound):
+            feed.get_feed(other_user)
+
+
+class TwitterFeedTestCase(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(settings.AUTH_USER_MODEL)
+        self.twitter_user = mommy.make(
+            'UserSocialAuth', user=self.user, provider='twitter',
+            extra_data={'access_token': {
+                'oauth_token': 'abcde', 'oauth_token_secret': 'acdbe'
+            }}
+        )
+
+    @patch('src.feed.services.twitter')
+    def test_initialization_sets_api(self, mocked_twitter):
+        api = Mock()
+        mocked_twitter.Api.return_value = api
+        feed = TwitterFeed(self.user)
+
+        mocked_twitter.Api.assert_called_once_with(
+            consumer_key=settings.SOCIAL_AUTH_TWITTER_KEY,
+            consumer_secret=settings.SOCIAL_AUTH_TWITTER_SECRET,
+            access_token_key='abcde', access_token_secret='acdbe'
+        )
+
+        assert feed.api == api
+
+    def test_initialization_fails_if_social_user_does_not_exist(self):
+        self.twitter_user.delete()
+        with pytest.raises(CredentialsNotFound):
+            feed = FacebookFeed(self.user)
+
+    @patch('src.feed.services.TwitterFeed.format_data')
+    @patch('src.feed.services.twitter')
+    def test_get_feed_from_other_user(self, mocked_twitter, mocked_format):
+        api = Mock()
+        api.GetUserTimeline.return_value = [Status(), Status()]
+        mocked_twitter.Api.return_value = api
+
+        other_user = mommy.make(settings.AUTH_USER_MODEL)
+        other_fb_user = mommy.make(
+            'UserSocialAuth', user=other_user, uid='123', provider='twitter'
+        )
+        feed = TwitterFeed(self.user)
+        feed.get_feed(other_user)
+
+        assert 2 == mocked_format.call_count
+
+    def test_get_feed_raises_error_if_other_fb_user_does_not_exist(self):
+        other_user = mommy.make(settings.AUTH_USER_MODEL)
+        feed = TwitterFeed(self.user)
         with pytest.raises(SocialUserNotFound):
             feed.get_feed(other_user)

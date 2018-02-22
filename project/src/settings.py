@@ -159,20 +159,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
 SOCIAL_AUTH_USER_FIELDS = ['email',]
 
-SOCIAL_AUTH_PIPELINE = {
+SOCIAL_AUTH_PIPELINE = [
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.user.get_username',
-    'social_core.pipeline.social_auth.associate_by_email'
+    'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
-    'src.core_auth.profile_data',
-    'src.core_auth.get_youtube_channel',
-}
+    'src.core_auth.pipelines.profile_data',
+    'src.core_auth.pipelines.get_youtube_channel',
+]
 
 
 SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')

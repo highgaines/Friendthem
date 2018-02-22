@@ -1,1 +1,1 @@
-web: PYTHONPATH=$PYTHONPATH:$PWD/project gunicorn config.wsgi --log-file -
+web: PYTHONPATH=$PYTHONPATH:$PWD/project gunicorn src.wsgi --log-file -

@@ -17,3 +17,4 @@ django-phonenumber-field==2.0.0
 onesignal-sdk==0.1.1
 django-map-widgets==0.1.9
 whitenoise==3.2.1
+Unipath==1.1

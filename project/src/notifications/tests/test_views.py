@@ -50,3 +50,4 @@ class NotificationsViewTestCase(APITestCase):
         assert 1 == len(content)
         assert content[0]['message'] == self.notification.message
         assert content[0]['sender']['id'] == self.other_user.id
+        assert content[0]['id'] == self.notification.id

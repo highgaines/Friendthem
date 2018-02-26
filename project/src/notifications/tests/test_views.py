@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from src.notifications.models import Device
+from src.notifications.models import Device, Notification
 
 User = get_user_model()
 
@@ -50,3 +50,49 @@ class NotificationsViewTestCase(APITestCase):
         assert 1 == len(content)
         assert content[0]['message'] == self.notification.message
         assert content[0]['sender']['id'] == self.other_user.id
+        assert content[0]['id'] == self.notification.id
+
+class DeleteNotificationsViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.other_user = mommy.make(User)
+        self.notification = mommy.make(
+            'Notification', recipient=self.user, sender=self.other_user
+        )
+        self.other_notification = mommy.make(
+            'Notification', recipient=self.other_user,
+        )
+        self.client.force_authenticate(self.user)
+
+        self.url = reverse(
+            'notifications:delete_notification',
+            kwargs={'pk': self.notification.id}
+        )
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.delete(self.url)
+        assert 401 == response.status_code
+
+    def test_post_not_allowed(self):
+        response = self.client.post(self.url)
+        assert 405 == response.status_code
+
+    def test_get_not_allowed(self):
+        response = self.client.get(self.url)
+        assert 405 == response.status_code
+
+    def test_delete_notification(self):
+        response = self.client.delete(self.url)
+        assert 204 == response.status_code
+        assert Notification.objects.filter(id=self.notification.id).exists() is False
+
+    def test_404_for_notification_for_other_user(self):
+        url =  reverse(
+            'notifications:delete_notification',
+            kwargs={'pk': self.other_notification.id}
+        )
+
+        response = self.client.delete(url)
+        assert 404 == response.status_code
+        assert Notification.objects.filter(id=self.other_notification.id).exists() is True

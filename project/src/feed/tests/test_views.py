@@ -43,6 +43,7 @@ class FeedViewTestCase(APITestCase):
                 {'d': 'e', 'created_time': 0}
             ]
         )
+        assert content['user_id'] == self.other_user.id
 
     def test_404_for_unexistent_user(self):
         self.other_user.delete()

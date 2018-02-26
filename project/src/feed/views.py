@@ -30,7 +30,7 @@ class FeedView(APIView):
             return Response({'error', str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
         data = sorted(data, key=lambda x: x.get('created_time', 0), reverse=True)
-        return Response({'data': data})
+        return Response({'data': data, 'user_id': user_id})
 
 
 feed_view = FeedView.as_view()

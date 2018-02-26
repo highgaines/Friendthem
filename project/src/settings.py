@@ -216,3 +216,6 @@ MAP_WIDGETS = {
     ),
     'GOOGLE_MAP_API_KEY': config('GOOGLE_MAPS_API_KEY')
 }
+
+GDAL_LIBRARY_PATH = config('GDAL_LIBRARY_PATH', default='')
+GEOS_LIBRARY_PATH = config('GEOS_LIBRARY_PATH', default='')

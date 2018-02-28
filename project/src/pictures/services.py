@@ -32,15 +32,11 @@ class FacebookProfilePicture(object):
 
     def get_pictures(self):
         album = self.get_profile_picture_album()
-        response = self.api.get_connections(album['id'], 'photos', fields='picture', limit=200)
+        response = self.api.get_connections(album['id'], 'photos', fields='images', limit=200)
         return [
-            {
-                'id': d['id'],
-                'picture': self.sanitize_picture_url(d['picture'])
-            } for d in response['data']
+            {'id': d['id'], 'picture': self.get_hires_picture(d) } for d in response['data']
         ]
 
     @staticmethod
-    def sanitize_picture_url(url):
-        parsed = urlparse(url)
-        return '{}://{}{}'.format(parsed.scheme, parsed.netloc, parsed.path)
+    def get_hires_picture(data):
+        return [image['source'] for image in data['images'] if image['height'] >= 600][0]

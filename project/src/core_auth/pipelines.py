@@ -28,7 +28,7 @@ def profile_picture(backend, response, user):
         return
 
     if backend.name == 'facebook':
-        picture_url = 'https://graph.facebook.com/{}/picture'.format(
+        picture_url = 'https://graph.facebook.com/{}/picture?type=large'.format(
             response.get('id')
         )
     elif backend.name == 'twitter':

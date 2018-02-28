@@ -40,7 +40,7 @@ class ProfileDataTestCase(TestCase):
 
         self.user.refresh_from_db()
 
-        assert self.user.picture == 'https://graph.facebook.com/1/picture'
+        assert self.user.picture == 'https://graph.facebook.com/1/picture?type=large'
         assert 'test_user' == self.user.social_profiles.get(provider='facebook').username
 
     def test_profile_data_for_linkedin_user(self):

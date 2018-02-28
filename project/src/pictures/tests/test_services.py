@@ -36,14 +36,16 @@ class FacebookProfilePictureTestCase(APITestCase):
         mocked_get_album.return_value = {'id': 23}
         api = Mock()
         api.get_connections.return_value = {'data': [
-            {'id': 1, 'picture': 'https://example.com/x.jpg?query=query'}
+            {'id': 1, 'images': [
+                {'height': 600, 'source': 'https://example.com/x.jpg?query=query'}
+            ]}
         ]}
         mocked_facebook.GraphAPI.return_value = api
 
         feed = FacebookProfilePicture(self.user)
         response = feed.get_pictures()
 
-        api.get_connections.assert_called_once_with(23, 'photos', fields='picture', limit=200)
+        api.get_connections.assert_called_once_with(23, 'photos', fields='images', limit=200)
 
         assert [{'id': 1, 'picture': 'https://example.com/x.jpg?query=query'}] == response
 

@@ -30,7 +30,7 @@ class ConnectionSerializer(serializers.ModelSerializer):
             connect = connect_class(data['user_1'])
             confirmed = connect.connect(data['user_2'])
         except Exception as err:
-            raise serializers.ValidationError(err.message)
+            raise serializers.ValidationError(getattr(err, 'message', str(err)))
 
         data['confirmed'] = confirmed
         return data

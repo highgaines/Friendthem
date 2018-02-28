@@ -34,13 +34,5 @@ class FacebookProfilePicture(object):
         album = self.get_profile_picture_album()
         response = self.api.get_connections(album['id'], 'photos', fields='picture', limit=200)
         return [
-            {
-                'id': d['id'],
-                'picture': self.sanitize_picture_url(d['picture'])
-            } for d in response['data']
+            {'id': d['id'], 'picture':d['picture'] } for d in response['data']
         ]
-
-    @staticmethod
-    def sanitize_picture_url(url):
-        parsed = urlparse(url)
-        return '{}://{}{}'.format(parsed.scheme, parsed.netloc, parsed.path)

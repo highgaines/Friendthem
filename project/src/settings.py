@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'src.connect',
     'src.feed',
     'src.notifications',
+    'src.pictures',
 ]
 
 MIDDLEWARE = [

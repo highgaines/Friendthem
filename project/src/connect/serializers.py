@@ -1,17 +1,21 @@
 from rest_framework import serializers
-from src.connect.models import Connection
-from src.core_auth.models import User
-from src.connect import services
+
+from src.core_auth.serializers import RetrieveUserSerializer
 from src.notifications.services import notify_user
+
+from src.connect.models import Connection
+from src.connect import services
+
 
 class ConnectionSerializer(serializers.ModelSerializer):
     user_1 = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    user_2_data = RetrieveUserSerializer(source='user_2', read_only=True)
     confirmed = serializers.BooleanField(read_only=True)
     notified = serializers.SerializerMethodField()
 
     class Meta:
         model = Connection
-        fields = ('user_1', 'user_2', 'provider', 'confirmed', 'notified')
+        fields = ('user_1', 'user_2', 'provider', 'confirmed', 'notified', 'user_2_data')
 
     def _get_connect_class(self, provider):
         return getattr(
@@ -26,7 +30,7 @@ class ConnectionSerializer(serializers.ModelSerializer):
             connect = connect_class(data['user_1'])
             confirmed = connect.connect(data['user_2'])
         except Exception as err:
-            raise serializers.ValidationError(err.message)
+            raise serializers.ValidationError(getattr(err, 'message', str(err)))
 
         data['confirmed'] = confirmed
         return data

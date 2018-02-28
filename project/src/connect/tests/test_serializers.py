@@ -62,7 +62,12 @@ class ConnectionSerializerTestCase(APITestCase):
         )
         assert serializer.is_valid() is True
         connection = serializer.save()
-        assert serializer.data == {'user_2': user_2.id, 'provider': 'youtube', 'confirmed': True, 'notified': False}
+        assert serializer.data['user_2'] == user_2.id
+        assert serializer.data['user_2_data']['phone_number'] == None
+        assert serializer.data['user_2_data']['personal_email'] == None
+        assert serializer.data['provider'] == 'youtube'
+        assert serializer.data['confirmed'] == True
+        assert serializer.data['notified'] == False
 
         mocked_services.YoutubeConnect.assert_called_once_with(user_1)
         youtube_connect.connect.assert_called_once_with(user_2)
@@ -91,7 +96,12 @@ class ConnectionSerializerTestCase(APITestCase):
         )
         assert serializer.is_valid() is True
         connection = serializer.save()
-        assert serializer.data == {'user_2': user_2.id, 'provider': 'youtube', 'confirmed': True, 'notified': True}
+        assert serializer.data['user_2'] == user_2.id
+        assert serializer.data['user_2_data']['phone_number'] == None
+        assert serializer.data['user_2_data']['personal_email'] == None
+        assert serializer.data['provider'] == 'youtube'
+        assert serializer.data['confirmed'] == True
+        assert serializer.data['notified'] == True
 
         mocked_services.YoutubeConnect.assert_called_once_with(user_1)
         youtube_connect.connect.assert_called_once_with(user_2)

@@ -24,9 +24,9 @@ class FacebookProfilePicture(object):
         return facebook.GraphAPI(access_token)
 
     def get_profile_picture_album(self):
-        albums = self.api.get_connections('me', 'albums', limit=1000)
+        response = self.api.get_connections('me', 'albums', limit=1000)
         try:
-            return [album for album in albums if album['name'] == 'Profile Pictures'][0]
+            return [album for album in response['data'] if album['name'] == 'Profile Pictures'][0]
         except IndexError:
             raise ProfilePicturesAlbumNotFound('Could not find album with name equals to "Profile Pictures"')
 

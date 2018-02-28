@@ -110,7 +110,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'hobbies', 'hometown', 'occupation',
-            'phone_number', 'age', 'personal_email',
+            'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications'
         )
 

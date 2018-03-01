@@ -118,14 +118,16 @@ class TwitterFeed(object):
     @staticmethod
     def format_data(item):
         img_url = None
+        _type = 'status'
         if item.media:
-            img_url = item.media[0].display_url,
+            media_url = item.media[0].media_url_https
+            _type = item.media[0].type
 
         return {
             'img_url': img_url,
             'num_likes': item.favorite_count,
             'description': item.text,
             'date_posted': item.created_at_in_seconds,
-            'type': 'status',
+            'type': type,
             'provider': 'twitter',
         }

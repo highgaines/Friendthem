@@ -50,9 +50,3 @@ class FacebookProfilePictureTestCase(APITestCase):
         api.get_connections.assert_called_once_with(23, 'photos', fields='images', limit=200)
 
         assert [{'id': 1, 'picture': 'https://example.com/x800.jpg?query=query'}] == response
-
-    def _test_get_feed_raises_error_if_other_fb_user_does_not_exist(self):
-        other_user = mommy.make(settings.AUTH_USER_MODEL)
-        feed = FacebookFeed(self.user)
-        with pytest.raises(SocialUserNotFound):
-            feed.get_feed(other_user)

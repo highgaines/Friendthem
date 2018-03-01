@@ -39,4 +39,5 @@ class FacebookProfilePicture(object):
 
     @staticmethod
     def get_hires_picture(data):
-        return [image['source'] for image in data['images'] if image['height'] >= 600][0]
+        sorted_images = sorted(data['images'], key=lambda x: x['height'], reverse=True)
+        return sorted_images[0]['source']

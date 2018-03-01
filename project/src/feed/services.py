@@ -128,6 +128,6 @@ class TwitterFeed(object):
             'num_likes': item.favorite_count,
             'description': item.text,
             'date_posted': item.created_at_in_seconds,
-            'type': type,
+            'type': _type,
             'provider': 'twitter',
         }

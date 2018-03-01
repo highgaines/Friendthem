@@ -2,6 +2,12 @@ import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
 from src.core_auth.models import SocialProfile
 
+def get_user(strategy, *args, **kwargs):
+    user = strategy.request.user
+    if user.is_anonymous:
+        return
+    return {'user': user}
+
 def profile_data(response, details, backend, user, *args, **kwargs):
     social_profile(backend, response, details, user)
     profile_picture(backend, response, user)

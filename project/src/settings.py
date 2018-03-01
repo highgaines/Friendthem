@@ -223,3 +223,5 @@ MAP_WIDGETS = {
 
 GDAL_LIBRARY_PATH = config('GDAL_LIBRARY_PATH', default='')
 GEOS_LIBRARY_PATH = config('GEOS_LIBRARY_PATH', default='')
+
+INSTALLED_APPS += ('raven.contrib.django.raven_compat', )

@@ -8,11 +8,13 @@ e2e:
 
 e2e-seed:
 	pg_dump -Fc friendthem > e2e-seed.dump
+
 coverage:
 	cd project && pytest --cov=src && cd -
+
 stagingdump:
 	heroku pg:backups capture --app staging-friendthem-api
-	curl -o staging.dump `heroku pg:backups public-url --app staging-friendthemi-api
+	curl -o staging.dump `heroku pg:backups public-url --app staging-friendthem-api`
 
 loadstagingdump:
 	dropdb friendthemstaging --if-exists

@@ -37,7 +37,9 @@ class FacebookProfilePictureTestCase(APITestCase):
         api = Mock()
         api.get_connections.return_value = {'data': [
             {'id': 1, 'images': [
-                {'height': 600, 'source': 'https://example.com/x.jpg?query=query'}
+                {'height': 600, 'source': 'https://example.com/x600.jpg?query=query'},
+                {'height': 300, 'source': 'https://example.com/x300.jpg?query=query'},
+                {'height': 800, 'source': 'https://example.com/x800.jpg?query=query'},
             ]}
         ]}
         mocked_facebook.GraphAPI.return_value = api
@@ -47,7 +49,7 @@ class FacebookProfilePictureTestCase(APITestCase):
 
         api.get_connections.assert_called_once_with(23, 'photos', fields='images', limit=200)
 
-        assert [{'id': 1, 'picture': 'https://example.com/x.jpg?query=query'}] == response
+        assert [{'id': 1, 'picture': 'https://example.com/x800.jpg?query=query'}] == response
 
     def _test_get_feed_raises_error_if_other_fb_user_does_not_exist(self):
         other_user = mommy.make(settings.AUTH_USER_MODEL)

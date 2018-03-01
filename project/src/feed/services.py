@@ -120,7 +120,7 @@ class TwitterFeed(object):
         img_url = None
         _type = 'status'
         if item.media:
-            media_url = item.media[0].media_url_https or item.media[0].media_url
+            img_url = item.media[0].media_url_https or item.media[0].media_url
             _type = item.media[0].type
 
         return {

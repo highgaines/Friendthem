@@ -161,7 +161,7 @@ LOGIN_REDIRECT_URL = '/redirect_to_app/'
 SOCIAL_AUTH_USER_FIELDS = ['email',]
 
 SOCIAL_AUTH_PIPELINE = [
-    'core_auth.pipelines.get_user',
+    'src.core_auth.pipelines.get_user',
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',

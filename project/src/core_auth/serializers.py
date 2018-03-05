@@ -47,10 +47,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'password', 'first_name',
             'last_name', 'client_id', 'client_secret', 'grant_type',
-            'picture', 'social_profiles',
-            'hobbies', 'hometown', 'occupation',
-            'phone_number', 'age', 'personal_email',
-            'ghost_mode', 'notifications', 'private_email', 'private_phone',
+            'picture', 'social_profiles', 'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email','ghost_mode',
+            'employer', 'age_range', 'bio',
+            'notifications', 'private_email', 'private_phone',
             'auth_errors'
         )
 
@@ -123,7 +123,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = (
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email', 'picture',
-            'first_name', 'last_name', 'ghost_mode', 'notifications'
+            'first_name', 'last_name', 'ghost_mode', 'notifications',
+            'employer', 'age_range', 'bio',
         )
 
 
@@ -146,6 +147,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
             'picture', 'social_profiles',
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
+            'employer', 'age_range', 'bio',
         )
 
     def get_phone_number(self, obj):
@@ -169,6 +171,7 @@ class NearbyUsersSerializer(RetrieveUserSerializer):
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'last_location', 'distance', 'connection_percentage',
+            'employer', 'age_range', 'bio',
             'phone_number', 'personal_email'
         )
 

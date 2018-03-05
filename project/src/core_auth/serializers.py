@@ -123,7 +123,30 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = ('last_location',)
 
 
-class NearbyUsersSerializer(serializers.ModelSerializer):
+class RetrieveUserSerializer(serializers.ModelSerializer):
+    phone_number = serializers.SerializerMethodField()
+    personal_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name',
+            'picture', 'social_profiles',
+            'hobbies', 'hometown', 'occupation',
+            'phone_number', 'age', 'personal_email',
+        )
+
+    def get_phone_number(self, obj):
+        if getattr(self.context['request'], 'user') == obj or not obj.private_phone:
+            if obj.phone_number:
+                return str(obj.phone_number)
+
+    def get_personal_email(self, obj):
+        if getattr(self.context['request'], 'user') == obj or not obj.private_email:
+            return obj.personal_email
+
+
+class NearbyUsersSerializer(RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
@@ -134,6 +157,7 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'last_location', 'distance', 'connection_percentage',
+            'phone_number', 'personal_email'
         )
 
     def get_distance(self, obj):
@@ -155,25 +179,3 @@ class NearbyUsersSerializer(serializers.ModelSerializer):
             )
 
         return round(percentage * 100)
-
-
-class RetrieveUserSerializer(serializers.ModelSerializer):
-    phone_number = serializers.SerializerMethodField()
-    personal_email = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id', 'first_name', 'last_name',
-            'picture', 'social_profiles',
-            'hobbies', 'hometown', 'occupation',
-            'phone_number', 'age', 'personal_email',
-        )
-
-    def get_phone_number(self, obj):
-        if getattr(self.context['request'], 'user') == obj or not obj.private_phone:
-            return obj.phone_number
-
-    def get_personal_email(self, obj):
-        if getattr(self.context['request'], 'user') == obj or not obj.private_email:
-            return obj.personal_email

@@ -349,7 +349,7 @@ class NearbyUsersViewTestCase(APITestCase):
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             phone_number='+552133333333', private_phone=False,
-            private_email=False, ghost_mode=False,
+            private_email=False, ghost_mode=False, featured=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -374,7 +374,7 @@ class NearbyUsersViewTestCase(APITestCase):
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             phone_number='+552133333333', private_phone=False,
-            private_email=False,
+            private_email=False, featured=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -399,8 +399,45 @@ class NearbyUsersViewTestCase(APITestCase):
         assert 100 == other_user_data['connection_percentage']
         assert other_user_data['phone_number'] == other_user_1.phone_number.as_e164
         assert other_user_data['personal_email'] == other_user_1.personal_email
+        assert other_user_data['featured'] is False
+        assert featured_user_data['id'] == featured_user.id
         assert featured_user_data['phone_number'] is None
         assert featured_user_data['personal_email'] is None
+        assert featured_user_data['featured'] is True
+
+    def test_get_only_featured_users_for_user_without_last_location(self):
+        self.user.last_location = None
+        self.user.save()
+        other_user_1 = mommy.make(
+            User,
+            last_location=GEOSGeometry('POINT (0.0001 0)'),
+            phone_number='+552133333333', private_phone=False,
+            private_email=False, featured=False,
+            _fill_optional=True
+        )
+        ghost_user = mommy.make(
+            User,
+            last_location=GEOSGeometry('POINT (0.0001 0)'),
+            ghost_mode=True
+        )
+        mommy.make('SocialProfile', user=other_user_1)
+        mommy.make('Connection', user_1=self.user, user_2=other_user_1)
+        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
+        featured_user = mommy.make(
+            User, featured=True, private_email=True, private_phone=True,
+            last_location=None, phone_number='+552122222222',
+            _fill_optional=True,
+        )
+        response = self.client.get(self.url + '?miles=200')
+        assert 200 == response.status_code
+
+        assert 1 == len(response.json())
+        featured_user_data = response.json()[0]
+
+        assert featured_user_data['id'] == featured_user.id
+        assert featured_user_data['phone_number'] is None
+        assert featured_user_data['personal_email'] is None
+        assert featured_user_data['featured'] is True
 
 
 class RedirectToAppViewTests(APITestCase):

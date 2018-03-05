@@ -47,9 +47,12 @@ class User(AbstractUser):
     picture = models.URLField(blank=True, null=True)
     hobbies = ArrayField(models.CharField(max_length=64), blank=True, null=True)
     hometown = models.CharField(max_length=128, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
     occupation = models.CharField(max_length=128, blank=True, null=True)
+    employer = models.CharField(max_length=128, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
+    age_range = models.CharField(max_length=10, blank=True, null=True)
     personal_email = models.EmailField(blank=True, null=True)
 
     # Settings

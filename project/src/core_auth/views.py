@@ -3,8 +3,9 @@ import json
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 
-from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import D
 
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
@@ -94,11 +95,19 @@ class NearbyUsersView(ListAPIView):
         miles = self.request.GET.get('miles', 200)
         distance = D(mi=miles)
 
-        return (User.objects.filter(
-            last_location__distance_lte=(user.last_location, distance),
-            ghost_mode=False) | User.objects.filter(featured=True)
-        ).annotate(
-            distance=Distance('last_location', user.last_location)
+        if user.last_location:
+            queryset = (User.objects.filter(
+                last_location__distance_lte=(user.last_location, distance),
+                ghost_mode=False) | User.objects.filter(featured=True)
+            )
+            last_location = user.last_location
+        else:
+            queryset = User.objects.filter(featured=True)
+            last_location = GEOSGeometry('POINT (0 0)', srid=4326)
+
+
+        return queryset.annotate(
+            distance=Distance('last_location', last_location)
         ).exclude(id=self.request.user.id)
 
 

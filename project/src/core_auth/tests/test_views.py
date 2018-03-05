@@ -6,6 +6,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
 
 from oauth2_provider.models import AccessToken
+from src.core_auth.models import AuthError
 
 User = get_user_model()
 
@@ -90,6 +91,24 @@ class UserDetailViewTests(APITestCase):
         assert None == content['hobbies']
         assert 'social_profiles' in content
         assert 1 == len(content['social_profiles'])
+
+    def test_returns_error_if_exists(self):
+        error = mommy.make('AuthError', user=self.user)
+        response = self.client.get(self.url)
+        assert 200 == response.status_code
+
+        content = response.json()
+        assert self.user.email == content['email']
+        assert self.user.id == content['id']
+        assert None == content['hobbies']
+        assert 'social_profiles' in content
+        assert 1 == len(content['social_profiles'])
+        assert 1 == len(content['auth_errors'])
+
+        assert content['auth_errors'][0]['message'] == error.message
+        assert content['auth_errors'][0]['provider'] == error.provider
+
+        assert 0 == AuthError.objects.count()
 
 
 class TokensViewTests(APITestCase):
@@ -324,6 +343,15 @@ class UpdateLocationTests(APITestCase):
         assert 1 == user.last_location.x
         assert 2 == user.last_location.y
 
+    def test_deletes_location_if_none_is_sent(self):
+        self.user.last_location = GEOSGeometry('POINT (2 1)')
+        self.user.save()
+        data = {'last_location': None}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert user.last_location is None
+
     def test_returns_400_for_incorrect_data(self):
         data = {'last_location': {'lrg': 1, 'lat': 2}}
         response = self.client.put(self.url, data=data, format='json')
@@ -374,7 +402,7 @@ class NearbyUsersViewTestCase(APITestCase):
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             phone_number='+552133333333', private_phone=False,
-            private_email=False, featured=False,
+            private_email=False, featured=False, ghost_mode=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -383,7 +411,7 @@ class NearbyUsersViewTestCase(APITestCase):
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
             User, featured=True, private_email=True, private_phone=True,
-            last_location=None, phone_number='+552122222222',
+            last_location=None, phone_number='+552122222222', ghost_mode=False,
             _fill_optional=True,
         )
         response = self.client.get(self.url + '?miles=200')

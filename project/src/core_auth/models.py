@@ -87,3 +87,10 @@ class SocialProfile(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+class AuthError(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='auth_errors'
+    )
+    provider = models.CharField(max_length=32)
+    message = models.TextField()

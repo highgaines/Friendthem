@@ -3,6 +3,8 @@ from six.moves.urllib_parse import urlencode
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -12,7 +14,9 @@ from social_core.backends.linkedin import LinkedinOAuth2
 from social_core.backends.twitter import TwitterOAuth
 from social_core.backends.google import GoogleOAuth2
 from social_core.utils import url_add_parameters, parse_qs
-from social_core.exceptions import AuthTokenError
+from social_core.exceptions import AuthTokenError, AuthCanceled, AuthAlreadyAssociated
+
+from src.core_auth.models import AuthError
 
 User = get_user_model()
 
@@ -94,7 +98,13 @@ class RESTStateOAuth2Mixin(object):
         """Get user from state session."""
         state = self.validate_state()
         kwargs['user'] = User.objects.get(id=self.session['_user_id'])
-        return super(RESTStateOAuth2Mixin, self).auth_complete(*args, **kwargs)
+        try:
+            return super(RESTStateOAuth2Mixin, self).auth_complete(*args, **kwargs)
+        except (AuthCanceled, AuthAlreadyAssociated) as err:
+            AuthError.objects.create(
+                provider=self.name, user=kwargs['user'], message=err
+            )
+            return redirect(reverse('user:redirect_to_app'))
 
 
 class RESTTwitterOAuth(RESTStateOAuth2Mixin, TwitterOAuth):

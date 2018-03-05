@@ -1,19 +1,22 @@
 import pytest
 from model_mommy import mommy
-
 from unittest.mock import patch, MagicMock
-from django.http import JsonResponse
+
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.urls import reverse
+
 from rest_framework.test import APITestCase
 from social_core.backends.oauth import BaseOAuth2
-from social_core.exceptions import AuthTokenError
+from social_core.exceptions import AuthTokenError, AuthCanceled
 
 from src.core_auth.backends import RESTStateOAuth2Mixin
+from src.core_auth.models import AuthError
 
 User = get_user_model()
 
 class RESTStateBackend(RESTStateOAuth2Mixin, BaseOAuth2):
-    pass
+    name = 'rest-state'
 
 class RESTStateOAuth2MixinTests(APITestCase):
     @patch.object(RESTStateBackend, 'auth_url', return_value='http://redirect_url')
@@ -137,3 +140,20 @@ class RESTStateOAuth2MixinTests(APITestCase):
         response = backend.auth_complete()
         validate_state.assert_called_once_with()
         super_auth_complete.assert_called_once_with(user=user)
+
+    @patch.object(RESTStateBackend, 'validate_state')
+    @patch.object(BaseOAuth2, 'auth_complete')
+    def test_auth_complete_cancelation(self, super_auth_complete, validate_state):
+        user = mommy.make(User)
+        backend = RESTStateBackend()
+        backend.session = {'_user_id': user.id}
+        super_auth_complete.side_effect = AuthCanceled(backend)
+        response = backend.auth_complete()
+        assert response['location'] == reverse('user:redirect_to_app')
+        validate_state.assert_called_once_with()
+        super_auth_complete.assert_called_once_with(user=user)
+
+        error_obj = AuthError.objects.last()
+        assert error_obj.provider == 'rest-state'
+        assert error_obj.message == 'Authentication process canceled'
+        assert error_obj.user == user

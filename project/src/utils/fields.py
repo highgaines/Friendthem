@@ -7,9 +7,12 @@ class PointField(Field):
     }
 
     def to_representation(self, obj):
-        return {'lng': obj.x, 'lat': obj.y}
+        if obj:
+            return {'lng': obj.x, 'lat': obj.y}
 
     def to_internal_value(self, data):
+        if data is None:
+            return data
         if not all([data.get('lng'), data.get('lat')]):
             self.fail('incorrect_format')
 

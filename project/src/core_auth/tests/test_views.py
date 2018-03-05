@@ -324,6 +324,15 @@ class UpdateLocationTests(APITestCase):
         assert 1 == user.last_location.x
         assert 2 == user.last_location.y
 
+    def test_deletes_location_if_none_is_sent(self):
+        self.user.last_location = GEOSGeometry('POINT (2 1)')
+        self.user.save()
+        data = {'last_location': None}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert user.last_location is None
+
     def test_returns_400_for_incorrect_data(self):
         data = {'last_location': {'lrg': 1, 'lat': 2}}
         response = self.client.put(self.url, data=data, format='json')

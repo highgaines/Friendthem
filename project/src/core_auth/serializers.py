@@ -116,7 +116,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    last_location = PointField()
+    last_location = PointField(allow_null=True)
 
     class Meta:
         model = User

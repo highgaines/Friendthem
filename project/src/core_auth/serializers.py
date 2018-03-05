@@ -40,6 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
+    auth_errors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -49,8 +50,19 @@ class UserSerializer(serializers.ModelSerializer):
             'picture', 'social_profiles',
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
-            'ghost_mode', 'notifications', 'private_email', 'private_phone'
+            'ghost_mode', 'notifications', 'private_email', 'private_phone',
+            'auth_errors'
         )
+
+    def get_auth_errors(self, obj):
+        errors = obj.auth_errors.all()
+        result = [{
+            'message': error.message,
+            'provider': error.provider
+        } for error in errors]
+
+        errors.delete()
+        return result
 
     def validate_username(self, value):
         if User.objects.filter(email=value).exists():

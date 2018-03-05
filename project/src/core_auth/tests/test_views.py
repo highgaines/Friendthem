@@ -6,6 +6,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
 
 from oauth2_provider.models import AccessToken
+from src.core_auth.models import AuthError
 
 User = get_user_model()
 
@@ -90,6 +91,24 @@ class UserDetailViewTests(APITestCase):
         assert None == content['hobbies']
         assert 'social_profiles' in content
         assert 1 == len(content['social_profiles'])
+
+    def test_returns_error_if_exists(self):
+        error = mommy.make('AuthError', user=self.user)
+        response = self.client.get(self.url)
+        assert 200 == response.status_code
+
+        content = response.json()
+        assert self.user.email == content['email']
+        assert self.user.id == content['id']
+        assert None == content['hobbies']
+        assert 'social_profiles' in content
+        assert 1 == len(content['social_profiles'])
+        assert 1 == len(content['auth_errors'])
+
+        assert content['auth_errors'][0]['message'] == error.message
+        assert content['auth_errors'][0]['provider'] == error.provider
+
+        assert 0 == AuthError.objects.count()
 
 
 class TokensViewTests(APITestCase):

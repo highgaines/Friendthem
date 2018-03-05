@@ -12,6 +12,36 @@ def profile_data(response, details, backend, user, *args, **kwargs):
     social_profile(backend, response, details, user)
     profile_picture(backend, response, user)
 
+
+def get_last_work(work_info):
+    ordered_works = sorted(
+        work_info, key=lambda x: x.get('start_date', '0'), reverse=True
+    )
+    if ordered_works:
+        return {
+            'employer': ordered_works[0].get('employer', {}).get('name'),
+            'occupation': ordered_works[0].get('position', {}).get('name'),
+        }
+    else:
+        return {}
+
+def update_user_profile_from_facebook(user, response):
+    if not user.hometown:
+        user.hometown = response.get('hometown',{}).get('name')
+    if not user.bio:
+        user.bio = response.get('about')
+    if not user.age_range:
+        user.age_range = '{} - {}'.format(
+            response.get('age_range', {}).get('min', ''),
+            response.get('age_range', {}).get('max', ''),
+        )
+    work = get_last_work(response.get('work', []))
+    if not user.occupation:
+        user.occupation = work.get('occupation')
+    if not user.employer:
+        user.employer = work.get('employer')
+    user.save()
+
 def social_profile(backend, response, details, user, *args, **kwargs):
     if backend.name == 'twitter':
         username = response.get('screen_name')
@@ -19,6 +49,7 @@ def social_profile(backend, response, details, user, *args, **kwargs):
         username = details.get('fullname')
     elif backend.name == 'facebook':
         username = response.get('name')
+        update_user_profile_from_facebook(user, response)
     elif backend.name == 'google-oauth2':
         username = response.get('displayName')
     elif backend.name == 'instagram':

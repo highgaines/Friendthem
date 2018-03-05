@@ -68,21 +68,29 @@ class FacebookFeed(object):
 
         fields = [
             'likes.summary(true)', 'caption', 'description', 'link',
-            'name', 'picture', 'created_time', 'status_type', 'message',
+            'name', 'created_time', 'status_type', 'message',
+            'attachments'
         ]
         content = self.api.get_connections(other_user_uid, 'posts', fields=','.join(fields))
         return [self.format_data(d) for d in content['data']]
 
-    @staticmethod
-    def format_data(item):
+    def format_data(self, item):
         return {
-            'img_url': item.get('picture'),
+            'img_url': self.get_hires_picture(item),
             'num_likes': item['likes']['summary']['total_count'],
             'description': item.get('name') or item.get('message'),
             'date_posted': int(maya.parse(item['created_time']).epoch),
             'type': item['status_type'],
             'provider': 'facebook',
         }
+
+    def get_hires_picture(self, item):
+        if item.get('attachments'):
+            attachment_data = item['attachments']['data']
+            data = [
+                d['media']['image'] for d in attachment_data if d.get('media').get('image')]
+            if data:
+                return data[0]['src']
 
 
 class TwitterFeed(object):

@@ -46,6 +46,8 @@ class InstagramFeedTestCase(APITestCase):
 
         assert 2 == mocked_format.call_count
 
+
+
     def test_get_feed_raises_error_if_other_insta_user_does_not_exist(self):
         other_user = mommy.make(settings.AUTH_USER_MODEL)
         feed = InstagramFeed(self.user)
@@ -91,6 +93,82 @@ class FacebookFeedTestCase(APITestCase):
         feed.get_feed(other_user)
 
         assert 2 == mocked_format.call_count
+
+    @patch('src.feed.services.facebook')
+    def test_get_image_and_likes(self, mocked_facebook):
+        api = Mock()
+        mocked_facebook.GraphAPI.return_value = api
+        other_user = mommy.make(settings.AUTH_USER_MODEL)
+        other_fb_user = mommy.make(
+            'UserSocialAuth', user=other_user, uid='123', provider='facebook'
+        )
+        data =  [{
+            "caption": "twitter.com",
+            "description": "“https://t.co/ZO1ZwFpCXu”",
+            "link": "https://example.com/link/",
+            "name": "Test Name",
+            "created_time": "2018-02-26T15:06:53+0000",
+            "status_type": "shared_story",
+            "message": "Test message",
+            "id": "1774734319268445_1831679343543942",
+            "likes": {
+                "data": [],
+                "summary": {
+                    "total_count": 0,
+                    "can_like": True,
+                    "has_liked": False
+                }
+            },
+            "attachments": {
+                "data": [{
+                    "description": "“https://t.co/ZO1ZwFpCXu”",
+                    "media": {
+                        "image": {
+                            "height": 720,
+                            "src": "https://example.com/test_src",
+                            "width": 720
+                        }
+                    },
+                    "target": {
+                        "url": "https://example.com/test_url"
+                    },
+                    "title": "test title",
+                    "type": "share",
+                    "url": "https://example.com/facebook_url"
+                }]
+            }
+        }, {
+            "created_time": "2018-03-03T16:24:10+0000",
+            "status_type": "mobile_status_update",
+            "message": "Test test",
+            "id": "1774734319238475_1837392089639334",
+            "likes": {
+                "data": [{
+                    "id": "123",
+                    "name": "Test User"
+                }],
+                "paging": {
+                    "cursors": {
+                        "before": "MTAyMTM5MDA4NjEwNjkzNzkZD",
+                        "after": "MTAyMDQxOTc1OTAyNTc3NDMZD"
+                    }
+                },
+                "summary": {
+                    "total_count": 5,
+                    "can_like": True,
+                    "has_liked": False
+                }
+            }
+        }]
+        api.get_connections.return_value = {'data': data}
+        feed = FacebookFeed(self.user)
+        response = feed.get_feed(other_user)
+        assert response[0]['img_url'] == 'https://example.com/test_src'
+        assert response[0]['num_likes'] == 0
+        assert response[0]['description'] == "Test Name"
+        assert response[1]['img_url'] is None
+        assert response[1]['num_likes'] == 5
+        assert response[1]['description'] == 'Test test'
 
     def test_get_feed_raises_error_if_other_fb_user_does_not_exist(self):
         other_user = mommy.make(settings.AUTH_USER_MODEL)

@@ -345,7 +345,13 @@ class NearbyUsersViewTestCase(APITestCase):
         assert 401 == response.status_code
 
     def test_get_nearby_users(self):
-        other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        other_user_1 = mommy.make(
+            User,
+            last_location=GEOSGeometry('POINT (0.0001 0)'),
+            phone_number='+552133333333', private_phone=False,
+            private_email=False, ghost_mode=False,
+            _fill_optional=True
+        )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
         mommy.make('SocialProfile', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
@@ -360,24 +366,41 @@ class NearbyUsersViewTestCase(APITestCase):
         assert 'distance' in other_user_data
         assert 0.006917072471764893 == other_user_data['distance']
         assert 100 == other_user_data['connection_percentage']
+        assert other_user_data['phone_number'] == other_user_1.phone_number.as_e164
+        assert other_user_data['personal_email'] == other_user_1.personal_email
 
     def test_get_nearby_and_featured_users(self):
-        other_user_1 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'))
+        other_user_1 = mommy.make(
+            User,
+            last_location=GEOSGeometry('POINT (0.0001 0)'),
+            phone_number='+552133333333', private_phone=False,
+            private_email=False,
+            _fill_optional=True
+        )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
         mommy.make('SocialProfile', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
-        featured_user = mommy.make(User, featured=True)
+        featured_user = mommy.make(
+            User, featured=True, private_email=True, private_phone=True,
+            last_location=None, phone_number='+552122222222',
+            _fill_optional=True,
+        )
         response = self.client.get(self.url + '?miles=200')
         assert 200 == response.status_code
 
         assert 2 == len(response.json())
         other_user_data = response.json()[0]
+        featured_user_data = response.json()[1]
 
         assert other_user_data['id'] == other_user_1.id
         assert 'distance' in other_user_data
         assert 0.006917072471764893 == other_user_data['distance']
         assert 100 == other_user_data['connection_percentage']
+        assert other_user_data['phone_number'] == other_user_1.phone_number.as_e164
+        assert other_user_data['personal_email'] == other_user_1.personal_email
+        assert featured_user_data['phone_number'] is None
+        assert featured_user_data['personal_email'] is None
 
 
 class RedirectToAppViewTests(APITestCase):

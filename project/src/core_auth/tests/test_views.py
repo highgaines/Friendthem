@@ -402,7 +402,7 @@ class NearbyUsersViewTestCase(APITestCase):
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             phone_number='+552133333333', private_phone=False,
-            private_email=False, featured=False,
+            private_email=False, featured=False, ghost_mode=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -411,7 +411,7 @@ class NearbyUsersViewTestCase(APITestCase):
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
             User, featured=True, private_email=True, private_phone=True,
-            last_location=None, phone_number='+552122222222',
+            last_location=None, phone_number='+552122222222', ghost_mode=False,
             _fill_optional=True,
         )
         response = self.client.get(self.url + '?miles=200')

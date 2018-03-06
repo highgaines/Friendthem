@@ -1,11 +1,16 @@
 from rest_framework import serializers
 
-from src.core_auth.serializers import RetrieveUserSerializer
+from django.contrib.auth import get_user_model
+from src.core_auth.serializers import (ConnectionPercentageMixin,
+                                       RetrieveUserSerializer,
+                                       SocialProfileSerializer)
 from src.notifications.services import notify_user
 
 from src.connect.models import Connection
 from src.connect import services
 
+
+User = get_user_model()
 
 class ConnectionSerializer(serializers.ModelSerializer):
     user_1 = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -44,3 +49,16 @@ class ConnectionSerializer(serializers.ModelSerializer):
             return notify_user(obj.user_1, obj.user_2, msg)
         except:
             return False
+
+class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
+    connection_percentage = serializers.SerializerMethodField()
+    social_profiles = SocialProfileSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name', 'featured',
+            'picture', 'hobbies', 'social_profiles',
+            'connection_percentage', 'employer', 'age_range', 'bio',
+            'phone_number', 'personal_email'
+        )

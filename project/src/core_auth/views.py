@@ -1,4 +1,5 @@
 import json
+from copy import copy
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
@@ -14,14 +15,16 @@ from oauth2_provider.views.mixins import OAuthLibMixin
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from src.core_auth.serializers import (UserSerializer, TokenSerializer,
                                        ProfileSerializer, LocationSerializer,
-                                       NearbyUsersSerializer, SocialProfileSerializer)
+                                       NearbyUsersSerializer, SocialProfileSerializer,
+                                       AuthErrorSerializer)
 
 
 User = get_user_model()
+
 
 class RegisterUserView(OAuthLibMixin, CreateAPIView):
     model = User
@@ -53,6 +56,17 @@ class UserDetailView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class AuthErrorView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AuthErrorSerializer
+
+    def get_queryset(self):
+        errors = self.request.user.auth_errors.all()
+        errors_copy = copy(errors)
+        errors.delete()
+        return errors_copy
 
 
 class TokensViewSet(ModelViewSet):
@@ -122,6 +136,7 @@ register_user = RegisterUserView.as_view()
 user_details = UserDetailView.as_view()
 tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
+errors_list = AuthErrorView.as_view()
 update_profile = UpdateProfileView.as_view()
 social_profile = CreateSocialProfileView.as_view()
 update_location = UpdateLocationView.as_view()

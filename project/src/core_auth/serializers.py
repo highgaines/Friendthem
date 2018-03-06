@@ -7,10 +7,15 @@ from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
 from src.connect.models import Connection
-from src.core_auth.models import SocialProfile
+from src.core_auth.models import SocialProfile, AuthError
 from src.utils.fields import PointField
 
 User = get_user_model()
+
+class AuthErrorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuthError
+        fields = ('provider', 'message')
 
 class SocialProfileSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -40,7 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
-    auth_errors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -51,18 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email','ghost_mode',
             'employer', 'age_range', 'bio',
             'notifications', 'private_email', 'private_phone',
-            'auth_errors'
         )
-
-    def get_auth_errors(self, obj):
-        errors = obj.auth_errors.all()
-        result = [{
-            'message': error.message,
-            'provider': error.provider
-        } for error in errors]
-
-        errors.delete()
-        return result
 
     def validate_username(self, value):
         if User.objects.filter(email=value).exists():
@@ -115,7 +108,6 @@ class TokenSerializer(serializers.ModelSerializer):
     def get_auth_time(self, obj):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
-
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

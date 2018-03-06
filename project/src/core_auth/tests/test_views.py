@@ -92,23 +92,34 @@ class UserDetailViewTests(APITestCase):
         assert 'social_profiles' in content
         assert 1 == len(content['social_profiles'])
 
-    def test_returns_error_if_exists(self):
-        error = mommy.make('AuthError', user=self.user)
+
+class AutheErrorViewTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.auth_error = mommy.make('AuthError', user=self.user)
+
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:list_errors')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_list_errors_for_user(self):
         response = self.client.get(self.url)
         assert 200 == response.status_code
 
         content = response.json()
-        assert self.user.email == content['email']
-        assert self.user.id == content['id']
-        assert None == content['hobbies']
-        assert 'social_profiles' in content
-        assert 1 == len(content['social_profiles'])
-        assert 1 == len(content['auth_errors'])
+        assert isinstance(content, list)
+        assert 1 == len(content)
 
-        assert content['auth_errors'][0]['message'] == error.message
-        assert content['auth_errors'][0]['provider'] == error.provider
+        assert {
+            'provider': self.auth_error.provider,
+            'message': self.auth_error.message,
+        } == content[0]
 
-        assert 0 == AuthError.objects.count()
+        assert AuthError.objects.filter(user=self.user).exists() is False
 
 
 class TokensViewTests(APITestCase):

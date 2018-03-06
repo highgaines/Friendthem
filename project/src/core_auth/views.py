@@ -16,11 +16,12 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.views import APIView
 
 from src.core_auth.serializers import (UserSerializer, TokenSerializer,
                                        ProfileSerializer, LocationSerializer,
                                        NearbyUsersSerializer, SocialProfileSerializer,
-                                       AuthErrorSerializer)
+                                       AuthErrorSerializer, ChangePasswordSerializer)
 
 
 User = get_user_model()
@@ -125,6 +126,22 @@ class NearbyUsersView(ListAPIView):
         ).exclude(id=self.request.user.id)
 
 
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+
+        serializer = self.serializer_class(user, data=self.request.data)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+        return Response(serializer.data)
+
+
+
 def redirect_user_to_app(request):
     location = 'FriendThem://'
     response = HttpResponse('', status=302)
@@ -141,3 +158,4 @@ update_profile = UpdateProfileView.as_view()
 social_profile = CreateSocialProfileView.as_view()
 update_location = UpdateLocationView.as_view()
 nearby_users = NearbyUsersView.as_view()
+change_password = ChangePasswordView.as_view()

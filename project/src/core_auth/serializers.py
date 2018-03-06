@@ -159,8 +159,27 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
         if getattr(self.context['request'], 'user') == obj or not obj.private_email:
             return obj.personal_email
 
+class ConnectionPercentageMixin(object):
+    connection_percentage = serializers.SerializerMethodField()
 
-class NearbyUsersSerializer(RetrieveUserSerializer):
+    def get_connection_percentage(self, obj):
+        user_1 = self.context['request'].user
+        user_2 = obj
+        percentage = 0
+        if user_2.social_profiles.count() or user_1.social_profiles.count():
+            percentage = (
+                Connection.objects.filter(
+                    user_1=user_1, user_2=user_2
+                ).count() / min(
+                    max(1, user_1.social_profiles.count()),
+                    max(1, user_2.social_profiles.count())
+                )
+            )
+
+        return round(percentage * 100)
+
+
+class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
@@ -179,18 +198,3 @@ class NearbyUsersSerializer(RetrieveUserSerializer):
         if getattr(obj, 'distance', None):
             return obj.distance.mi
 
-    def get_connection_percentage(self, obj):
-        user_1 = self.context['request'].user
-        user_2 = obj
-        percentage = 0
-        if user_2.social_profiles.count() or user_1.social_profiles.count():
-            percentage = (
-                Connection.objects.filter(
-                    user_1=user_1, user_2=user_2
-                ).count() / min(
-                    max(1, user_1.social_profiles.count()),
-                    max(1, user_2.social_profiles.count())
-                )
-            )
-
-        return round(percentage * 100)

@@ -3,6 +3,7 @@ from src.core_auth import views
 
 urlpatterns = [
     path('auth/register/', views.register_user, name='register'),
+    path('auth/change_password/', views.change_password, name='change_password'),
     path('auth/me/tokens/', views.tokens_list, name='list_tokens'),
     path('auth/me/tokens/errors/', views.errors_list, name='list_errors'),
     path('auth/me/tokens/<provider>/', views.tokens_get, name='get_token'),

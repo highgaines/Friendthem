@@ -190,3 +190,38 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
         if getattr(obj, 'distance', None):
             return obj.distance.mi
 
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    client_id = serializers.CharField(write_only=True)
+    client_secret = serializers.CharField(write_only=True)
+    email = serializers.EmailField(read_only=True)
+    social_profiles = SocialProfileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'new_password', 'old_password', 'client_id',
+            'client_secret', 'email', 'social_profiles'
+        )
+
+    def validate_old_password(self, value):
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError('Your old password was entered incorrectly. Please enter it again.')
+        return value
+
+    def validate(self, data):
+        try:
+            Application.objects.get(
+                client_id=data.pop('client_id'),
+                client_secret=data.pop('client_secret'),
+            )
+        except Application.DoesNotExist:
+            raise serializers.ValidationError('Application not found.')
+        return data
+
+    def save(self):
+        new_password = self.validated_data['new_password']
+        self.instance.set_password(new_password)
+        self.instance.save()

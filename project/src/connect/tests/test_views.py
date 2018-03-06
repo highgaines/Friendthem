@@ -10,6 +10,7 @@ from src.connect.serializers import ConnectionSerializer
 
 User = get_user_model()
 
+
 class ConnectionAPIViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
@@ -34,7 +35,8 @@ class ConnectedUsersAPIViewTestCase(APITestCase):
         mommy.make('SocialProfile', user=self.user, _quantity=4)
         mommy.make('SocialProfile', user=self.connected_user, _quantity=4)
         not_connected_user = mommy.make(User)
-        connection = mommy.make('Connection', user_1=self.user, user_2=self.connected_user, _quantity=2)
+        mommy.make('Connection', user_1=self.user, user_2=self.connected_user, provider='youtube')
+        mommy.make('Connection', user_1=self.user, user_2=self.connected_user, provider='twitter')
         self.client.force_authenticate(self.user)
         self.url = reverse('connect:users')
 

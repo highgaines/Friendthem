@@ -7,10 +7,15 @@ from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
 from src.connect.models import Connection
-from src.core_auth.models import SocialProfile
+from src.core_auth.models import SocialProfile, AuthError
 from src.utils.fields import PointField
 
 User = get_user_model()
+
+class AuthErrorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuthError
+        fields = ('provider', 'message')
 
 class SocialProfileSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -40,7 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
-    auth_errors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -51,18 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email','ghost_mode',
             'employer', 'age_range', 'bio',
             'notifications', 'private_email', 'private_phone',
-            'auth_errors'
         )
-
-    def get_auth_errors(self, obj):
-        errors = obj.auth_errors.all()
-        result = [{
-            'message': error.message,
-            'provider': error.provider
-        } for error in errors]
-
-        errors.delete()
-        return result
 
     def validate_username(self, value):
         if User.objects.filter(email=value).exists():
@@ -116,7 +109,6 @@ class TokenSerializer(serializers.ModelSerializer):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
 
-
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -159,8 +151,27 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
         if getattr(self.context['request'], 'user') == obj or not obj.private_email:
             return obj.personal_email
 
+class ConnectionPercentageMixin(object):
+    connection_percentage = serializers.SerializerMethodField()
 
-class NearbyUsersSerializer(RetrieveUserSerializer):
+    def get_connection_percentage(self, obj):
+        user_1 = self.context['request'].user
+        user_2 = obj
+        percentage = 0
+        if user_2.social_profiles.count() or user_1.social_profiles.count():
+            percentage = (
+                Connection.objects.filter(
+                    user_1=user_1, user_2=user_2
+                ).count() / min(
+                    max(1, user_1.social_profiles.count()),
+                    max(1, user_2.social_profiles.count())
+                )
+            )
+
+        return round(percentage * 100)
+
+
+class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True)
@@ -179,18 +190,38 @@ class NearbyUsersSerializer(RetrieveUserSerializer):
         if getattr(obj, 'distance', None):
             return obj.distance.mi
 
-    def get_connection_percentage(self, obj):
-        user_1 = self.context['request'].user
-        user_2 = obj
-        percentage = 0
-        if user_2.social_profiles.count() or user_1.social_profiles.count():
-            percentage = (
-                Connection.objects.filter(
-                    user_1=user_1, user_2=user_2
-                ).count() / min(
-                    max(1, user_1.social_profiles.count()),
-                    max(1, user_2.social_profiles.count())
-                )
-            )
 
-        return round(percentage * 100)
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    client_id = serializers.CharField(write_only=True)
+    client_secret = serializers.CharField(write_only=True)
+    email = serializers.EmailField(read_only=True)
+    social_profiles = SocialProfileSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'new_password', 'old_password', 'client_id',
+            'client_secret', 'email', 'social_profiles'
+        )
+
+    def validate_old_password(self, value):
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError('Your old password was entered incorrectly. Please enter it again.')
+        return value
+
+    def validate(self, data):
+        try:
+            Application.objects.get(
+                client_id=data.pop('client_id'),
+                client_secret=data.pop('client_secret'),
+            )
+        except Application.DoesNotExist:
+            raise serializers.ValidationError('Application not found.')
+        return data
+
+    def save(self):
+        new_password = self.validated_data['new_password']
+        self.instance.set_password(new_password)
+        self.instance.save()

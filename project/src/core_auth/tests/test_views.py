@@ -11,7 +11,6 @@ from src.core_auth.models import AuthError
 User = get_user_model()
 
 class RegisterUserViewTests(APITestCase):
-
     def setUp(self):
         self.application = mommy.make('Application', authorization_grant_type='password')
         self.url = reverse('user:register')
@@ -92,23 +91,34 @@ class UserDetailViewTests(APITestCase):
         assert 'social_profiles' in content
         assert 1 == len(content['social_profiles'])
 
-    def test_returns_error_if_exists(self):
-        error = mommy.make('AuthError', user=self.user)
+
+class AutheErrorViewTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.auth_error = mommy.make('AuthError', user=self.user)
+
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:list_errors')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        assert 401 == response.status_code
+
+    def test_list_errors_for_user(self):
         response = self.client.get(self.url)
         assert 200 == response.status_code
 
         content = response.json()
-        assert self.user.email == content['email']
-        assert self.user.id == content['id']
-        assert None == content['hobbies']
-        assert 'social_profiles' in content
-        assert 1 == len(content['social_profiles'])
-        assert 1 == len(content['auth_errors'])
+        assert isinstance(content, list)
+        assert 1 == len(content)
 
-        assert content['auth_errors'][0]['message'] == error.message
-        assert content['auth_errors'][0]['provider'] == error.provider
+        assert {
+            'provider': self.auth_error.provider,
+            'message': self.auth_error.message,
+        } == content[0]
 
-        assert 0 == AuthError.objects.count()
+        assert AuthError.objects.filter(user=self.user).exists() is False
 
 
 class TokensViewTests(APITestCase):
@@ -466,6 +476,64 @@ class NearbyUsersViewTestCase(APITestCase):
         assert featured_user_data['phone_number'] is None
         assert featured_user_data['personal_email'] is None
         assert featured_user_data['featured'] is True
+
+class ChangePasswordViewTests(APITestCase):
+    def setUp(self):
+        self.application = mommy.make(
+            'Application',
+            authorization_grant_type='password'
+        )
+        self.user = mommy.make(User)
+        self.user.set_password('test123!')
+        self.user.save()
+
+        mommy.make('SocialProfile', user=self.user)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:change_password')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert 401 == response.status_code
+
+    def test_change_password_success(self):
+        data = {
+            'old_password': 'test123!', 'new_password': '123test!',
+            'client_id': self.application.client_id,
+            'client_secret': self.application.client_secret,
+        }
+        response = self.client.post(self.url, data)
+        assert 200 == response.status_code
+        assert response.json()['email'] == self.user.email
+        assert 1 == len(response.json()['social_profiles'])
+        self.user.refresh_from_db()
+        assert self.user.check_password('123test!') is True
+
+    def test_change_password_fail_if_client_is_invalid(self):
+        data = {
+            'old_password': 'test123!', 'new_password': '123test!',
+            'client_id': 'invalid_client_id',
+            'client_secret': self.application.client_secret,
+        }
+        response = self.client.post(self.url, data)
+        assert 400 == response.status_code
+        assert response.json() == {'non_field_errors': ['Application not found.']}
+        self.user.refresh_from_db()
+        assert self.user.check_password('test123!') is True
+
+    def test_change_password_fail_if_old_password_dont_match(self):
+        data = {
+            'old_password': 'test123', 'new_password': '123test!',
+            'client_id': self.application.client_id,
+            'client_secret': self.application.client_secret,
+        }
+        response = self.client.post(self.url, data)
+        assert 400 == response.status_code
+        assert response.json() == {'old_password':
+            ['Your old password was entered incorrectly. Please enter it again.']
+        }
+        self.user.refresh_from_db()
+        assert self.user.check_password('test123!') is True
 
 
 class RedirectToAppViewTests(APITestCase):

@@ -7,11 +7,11 @@ from rest_framework.test import APITestCase
 
 from src.pictures.services import ProfilePicturesAlbumNotFound
 
-class FeedViewTestCase(APITestCase):
+class FacebookPicturesViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(settings.AUTH_USER_MODEL)
         self.client.force_authenticate(self.user)
-        self.url = reverse('pictures:pictures')
+        self.url = reverse('pictures:facebook_pictures')
 
     def test_login_required(self):
         self.client.logout()

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from src.pictures.services import FacebookProfilePicture
 
-class PicturesView(APIView):
+class FacebookPicturesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
@@ -16,4 +16,4 @@ class PicturesView(APIView):
 
         return Response({'data': data})
 
-pictures_view = PicturesView.as_view()
+facebook_pictures_view = FacebookPicturesView.as_view()

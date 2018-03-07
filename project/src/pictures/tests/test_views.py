@@ -127,6 +127,6 @@ class PictureListCreateView(APITestCase):
         response = self.client.post(self.url, data)
         assert 400 == response.status_code
         assert response.json() == {
-            'non_field_errors': ['User already has 6 pictures. You must delete one before adding other.']
+            'non_field_errors': ['User already has 6 pictures. You must delete one before adding another.']
         }
         assert 6 == UserPicture.objects.filter(user=self.user).count()

@@ -12,6 +12,6 @@ class PictureSerializer(serializers.ModelSerializer):
         if data['user'].pictures.count() >= 6:
             raise serializers.ValidationError(
                 'User already has 6 pictures. '
-                'You must delete one before adding other.'
+                'You must delete one before adding another.'
             )
         return data

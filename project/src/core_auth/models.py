@@ -65,8 +65,8 @@ class User(AbstractUser):
     )
 
     featured = models.BooleanField(default=False)
-    private_phone = models.BooleanField(default=True)
-    private_email = models.BooleanField(default=True)
+    phone_is_private = models.BooleanField(default=True)
+    email_is_private = models.BooleanField(default=True)
 
     objects = UserManager()
 

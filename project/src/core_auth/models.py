@@ -74,6 +74,11 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def save(self, *args, **kwargs):
+        if not self.personal_email:
+            self.personal_email = self.email
+        return super(User, self).save(*args, **kwargs)
+
 
 class SocialProfile(models.Model):
     provider = models.CharField(max_length=32)

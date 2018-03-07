@@ -18,6 +18,7 @@ def merge_social_profile_to_social_auth(apps, schema_director):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('social_django', '0008_partial_timestamp'),
         ('core_auth', '0015_auto_20180307_2037'),
     ]
 

@@ -256,7 +256,9 @@ class UpdateProfileViewTests(APITestCase):
             'hometown': 'New York',
             'occupation': 'Test Occupation',
             'age': 33,
-            'personal_email': 'test@example.com'
+            'personal_email': 'test@example.com',
+            'phone_is_private': True,
+            'email_is_private': True,
         }
         response = self.client.put(self.url, data=data)
         user = User.objects.get(id=self.user.id)
@@ -267,6 +269,8 @@ class UpdateProfileViewTests(APITestCase):
         assert data['occupation'] == user.occupation
         assert data['age'] == user.age
         assert data['personal_email'] == user.personal_email
+        assert data['phone_is_private'] is True
+        assert data['email_is_private'] is True
 
     def test_update_overrides_old_profile(self):
         self.user.hobbies = ['Shaolin Shadowboxing']
@@ -386,8 +390,8 @@ class NearbyUsersViewTestCase(APITestCase):
         other_user_1 = mommy.make(
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
-            phone_number='+552133333333', private_phone=False,
-            private_email=False, ghost_mode=False, featured=False,
+            phone_number='+552133333333', phone_is_private=False,
+            email_is_private=False, ghost_mode=False, featured=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -411,8 +415,8 @@ class NearbyUsersViewTestCase(APITestCase):
         other_user_1 = mommy.make(
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
-            phone_number='+552133333333', private_phone=False,
-            private_email=False, featured=False, ghost_mode=False,
+            phone_number='+552133333333', phone_is_private=False,
+            email_is_private=False, featured=False, ghost_mode=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
@@ -420,7 +424,7 @@ class NearbyUsersViewTestCase(APITestCase):
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
-            User, featured=True, private_email=True, private_phone=True,
+            User, featured=True, email_is_private=True, phone_is_private=True,
             last_location=None, phone_number='+552122222222', ghost_mode=False,
             _fill_optional=True,
         )
@@ -449,8 +453,8 @@ class NearbyUsersViewTestCase(APITestCase):
         other_user_1 = mommy.make(
             User,
             last_location=GEOSGeometry('POINT (0.0001 0)'),
-            phone_number='+552133333333', private_phone=False,
-            private_email=False, featured=False,
+            phone_number='+552133333333', phone_is_private=False,
+            email_is_private=False, featured=False,
             _fill_optional=True
         )
         ghost_user = mommy.make(
@@ -462,7 +466,7 @@ class NearbyUsersViewTestCase(APITestCase):
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
-            User, featured=True, private_email=True, private_phone=True,
+            User, featured=True, email_is_private=True, phone_is_private=True,
             last_location=None, phone_number='+552122222222',
             _fill_optional=True,
         )

@@ -65,14 +65,19 @@ class User(AbstractUser):
     )
 
     featured = models.BooleanField(default=False)
-    private_phone = models.BooleanField(default=True)
-    private_email = models.BooleanField(default=True)
+    phone_is_private = models.BooleanField(default=True)
+    email_is_private = models.BooleanField(default=True)
 
     objects = UserManager()
 
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    def save(self, *args, **kwargs):
+        if not self.personal_email:
+            self.personal_email = self.email
+        return super(User, self).save(*args, **kwargs)
 
 
 class SocialProfile(models.Model):

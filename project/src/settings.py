@@ -174,6 +174,7 @@ SOCIAL_AUTH_PIPELINE = [
     'social_core.pipeline.user.user_details',
     'src.core_auth.pipelines.profile_data',
     'src.core_auth.pipelines.get_youtube_channel',
+    'src.pictures.pipelines.autoset_user_pictures',
 ]
 
 

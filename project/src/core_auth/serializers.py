@@ -183,7 +183,7 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'last_location', 'distance', 'connection_percentage',
-            'employer', 'age_range', 'bio',
+            'employer', 'age_range', 'bio', 'hometown',
             'phone_number', 'personal_email'
         )
 

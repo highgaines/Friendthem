@@ -9,8 +9,10 @@ def notify_user(sender, recipient, msg):
         sender=sender,
         recipient=recipient
     )
+    if not created:
+        return True
 
-    if recipient.notifications and device_ids and created:
+    if recipient.notifications and device_ids:
         client = onesignal.Client(
             app={
             'app_auth_key': settings.ONESIGNAL_APP_KEY,

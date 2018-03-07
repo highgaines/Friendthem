@@ -117,6 +117,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications',
             'employer', 'age_range', 'bio',
+            'private_email', 'private_phone',
         )
 
 

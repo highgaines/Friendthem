@@ -1,6 +1,5 @@
 import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
-from src.core_auth.models import SocialProfile
 
 def get_user(strategy, *args, **kwargs):
     user = strategy.request.user
@@ -8,8 +7,8 @@ def get_user(strategy, *args, **kwargs):
         return
     return {'user': user}
 
-def profile_data(response, details, backend, user, *args, **kwargs):
-    social_profile(backend, response, details, user)
+def profile_data(response, details, backend, user, social, *args, **kwargs):
+    social_profile(backend, response, details, user, social)
     profile_picture(backend, response, user)
 
 
@@ -42,7 +41,7 @@ def update_user_profile_from_facebook(user, response):
         user.employer = work.get('employer')
     user.save()
 
-def social_profile(backend, response, details, user, *args, **kwargs):
+def social_profile(backend, response, details, user, social, *args, **kwargs):
     if backend.name == 'twitter':
         username = response.get('screen_name')
     elif backend.name == 'linkedin-oauth2':
@@ -55,10 +54,8 @@ def social_profile(backend, response, details, user, *args, **kwargs):
     elif backend.name == 'instagram':
         username = response.get('user', {}).get('username')
 
-    SocialProfile.objects.update_or_create(
-            user=user, provider=backend.name,
-            defaults={'username': username}
-    )
+    social.extra_data.update({'username': username})
+    social.save()
 
 def profile_picture(backend, response, user):
     if user.picture:

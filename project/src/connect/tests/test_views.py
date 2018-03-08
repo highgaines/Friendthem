@@ -78,8 +78,8 @@ class ConnectedUsersAPIViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
         self.connected_user = mommy.make(User)
-        mommy.make('SocialProfile', user=self.user, _quantity=4)
-        mommy.make('SocialProfile', user=self.connected_user, _quantity=4)
+        mommy.make('UserSocialAuth', user=self.user, _quantity=4)
+        mommy.make('UserSocialAuth', user=self.connected_user, _quantity=4)
         not_connected_user = mommy.make(User)
         mommy.make('Connection', user_1=self.user, user_2=self.connected_user, provider='youtube')
         mommy.make('Connection', user_1=self.user, user_2=self.connected_user, provider='twitter')

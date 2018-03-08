@@ -3,18 +3,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from mapwidgets.widgets import GooglePointFieldWidget
 
-from src.core_auth.models import SocialProfile
 from social_django.models import UserSocialAuth
 
 User = get_user_model()
 
-class SocialProfileInline(admin.TabularInline):
-    model = SocialProfile
-    fields = ('username', 'provider')
-
 class SocialAuthInline(admin.TabularInline):
     model = UserSocialAuth
-    fields = ('provider', 'uid')
+    fields = ('provider', 'uid', 'extra_data')
 
 class UserAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -31,7 +26,7 @@ class UserAdmin(admin.ModelAdmin):
     )
     list_filter = ('featured',)
     actions = ('mark_as_featured', 'unmark_as_featured')
-    inlines = [SocialProfileInline, SocialAuthInline]
+    inlines = [SocialAuthInline]
 
     def latitude(self, obj):
         if obj.last_location:

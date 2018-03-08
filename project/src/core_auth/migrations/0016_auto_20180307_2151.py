@@ -10,10 +10,10 @@ def merge_social_profile_to_social_auth(apps, schema_director):
             social_auth = SocialAuth.objects.get(
                 provider=social_profile.provider, user=social_profile.user
             )
+            social_auth.extra_data.update({'username': social_profile.username})
+            social_auth.save()
         except SocialAuth.DoesNotExist:
             pass
-        social_auth.extra_data.update({'username': social_profile.username})
-        social_auth.save()
 
 class Migration(migrations.Migration):
 

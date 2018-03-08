@@ -3,9 +3,7 @@ import facebook
 
 from django.core.exceptions import ObjectDoesNotExist
 from src.connect.exceptions import CredentialsNotFound
-
-class ProfilePicturesAlbumNotFound(Exception):
-    pass
+from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
 
 class FacebookProfilePicture(object):

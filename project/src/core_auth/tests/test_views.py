@@ -324,8 +324,9 @@ class CreateSocialProfileView(APITestCase):
         response = self.client.post(self.url, data=data)
 
         assert 201 == response.status_code
-        social_profile = self.user.social_profiles.get(provider='snapchat')
-        assert 'testuser' == social_profile.username
+        social_profile = self.user.social_auth.get(provider='snapchat')
+        assert 'testuser' == social_profile.extra_data['username']
+        assert 'testuser' == social_profile.uid
 
 
 class UpdateLocationTests(APITestCase):

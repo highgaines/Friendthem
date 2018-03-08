@@ -11,6 +11,7 @@ User = get_user_model()
 class ProfileDataTestCase(TestCase):
     def setUp(self):
         self.user = mommy.make(User)
+        self.social = mommy.make('UserSocialAuth')
         self.response = {}
         self.details = {}
         self.backend = Mock()
@@ -20,28 +21,32 @@ class ProfileDataTestCase(TestCase):
         self.response['profile_image_url'] = 'https://test.com/test_normal.png'
         self.backend.name = 'twitter'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social)
 
         assert pipeline is None
 
         self.user.refresh_from_db()
 
         assert self.user.picture == 'https://test.com/test.png'
-        assert 'test_user' == self.user.social_profiles.get(provider='twitter').username
+        assert 'test_user' == self.social.extra_data.get('username')
 
     def test_profile_data_for_facebook_user(self):
         self.response['name'] = 'test_user'
         self.response['id'] = '1'
         self.backend.name = 'facebook'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 
         self.user.refresh_from_db()
+        self.social.refresh_from_db()
 
         assert self.user.picture == 'https://graph.facebook.com/1/picture?type=large'
-        assert 'test_user' == self.user.social_profiles.get(provider='facebook').username
+        assert 'test_user' == self.social.extra_data.get('username')
 
     def test_complete_profile_data_for_facebook_user(self):
         self.response = {
@@ -71,7 +76,9 @@ class ProfileDataTestCase(TestCase):
         }
         self.backend.name = 'facebook'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 
@@ -83,47 +90,54 @@ class ProfileDataTestCase(TestCase):
         assert self.user.employer == 'Test Employer'
         assert self.user.occupation == 'Test Occupation'
         assert self.user.picture == 'https://graph.facebook.com/1/picture?type=large'
-        assert 'Test User' == self.user.social_profiles.get(provider='facebook').username
+        assert 'Test User' == self.social.extra_data.get('username')
 
     def test_profile_data_for_linkedin_user(self):
         self.details['fullname'] = 'test_user'
         self.backend.name = 'linkedin-oauth2'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 
         self.user.refresh_from_db()
 
         assert self.user.picture is None
-        assert 'test_user' == self.user.social_profiles.get(provider='linkedin-oauth2').username
+        assert 'test_user' == self.social.extra_data['username']
 
     def test_profile_data_for_google_user(self):
         self.response['displayName'] = 'test_user'
         self.response['image'] = {'url': 'https://test.com/test.png'}
         self.backend.name = 'google-oauth2'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 
         self.user.refresh_from_db()
 
         assert self.user.picture == 'https://test.com/test.png'
-        assert 'test_user' == self.user.social_profiles.get(provider='google-oauth2').username
+        assert 'test_user' == self.social.extra_data.get('username')
 
     def test_profile_data_for_instagram_user(self):
         self.response['user'] = {'username': 'test_user', 'profile_picture': 'https://test.com/test.png'}
         self.backend.name = 'instagram'
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 
         self.user.refresh_from_db()
+        self.social.refresh_from_db()
 
         assert self.user.picture == 'https://test.com/test.png'
-        assert 'test_user' == self.user.social_profiles.get(provider='instagram').username
+        assert 'test_user' == self.social.extra_data.get('username')
 
     def test_do_not_update_user_picture(self):
         self.response['screen_name'] = 'test_user'
@@ -132,7 +146,9 @@ class ProfileDataTestCase(TestCase):
         self.user.picture = 'http://test.com/picture.png'
         self.user.save()
 
-        pipeline = profile_data(self.response, self.details, self.backend, self.user)
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
 
         assert pipeline is None
 

@@ -52,7 +52,7 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
     connection_percentage = serializers.SerializerMethodField()
-    social_profiles = SocialProfileSerializer(many=True)
+    social_profiles = SocialProfileSerializer(many=True, source='social_auth')
 
     class Meta:
         model = User

@@ -26,6 +26,23 @@ class PictureViewSet(ModelViewSet):
     def get_queryset(self):
         return self.request.user.pictures.all()
 
+    def destroy(self, request, pk=None):
+        super(PictureViewSet, self).destroy(request, pk)
+        response = self.list(request)
+        return response
+
+    def create(self, request, pk=None):
+        create_response = super(PictureViewSet, self).create(request, pk)
+        response = self.list(request)
+        response.status_code = create_response.status_code
+        return response
+
+    def update(self, request, pk=None):
+        update_response = super(PictureViewSet, self).update(request, pk)
+        response = self.list(request)
+        response.status_code = update_response.status_code
+        return response
+
 facebook_pictures_view = FacebookPicturesView.as_view()
 pictures_list_create_view = PictureViewSet.as_view({'get': 'list', 'post': 'create'})
 pictures_delete_update_view = PictureViewSet.as_view({'put': 'update', 'delete': 'destroy'})

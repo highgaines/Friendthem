@@ -28,4 +28,4 @@ class PictureViewSet(ModelViewSet):
 
 facebook_pictures_view = FacebookPicturesView.as_view()
 pictures_list_create_view = PictureViewSet.as_view({'get': 'list', 'post': 'create'})
-pictures_delete_view = PictureViewSet.as_view({'delete': 'destroy'})
+pictures_delete_update_view = PictureViewSet.as_view({'put': 'update', 'delete': 'destroy'})

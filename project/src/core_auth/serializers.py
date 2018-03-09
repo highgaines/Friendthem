@@ -6,9 +6,12 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.views.mixins import OAuthLibMixin
 from social_django.models import UserSocialAuth
+
 from src.connect.models import Connection
-from src.core_auth.models import AuthError
+from src.pictures.serializers import PictureSerializer
 from src.utils.fields import PointField
+
+from src.core_auth.models import AuthError
 
 User = get_user_model()
 
@@ -49,6 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.EmailField(write_only=True)
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
+    pictures = PictureSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -57,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 'client_id', 'client_secret', 'grant_type',
             'picture', 'social_profiles', 'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email','ghost_mode',
-            'employer', 'age_range', 'bio',
+            'employer', 'age_range', 'bio', 'pictures',
             'notifications', 'email_is_private', 'phone_is_private',
         )
 
@@ -137,12 +141,13 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     personal_email = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
+    pictures = PictureSerializer(many=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'first_name', 'last_name',
-            'picture', 'social_profiles',
+            'picture', 'social_profiles', 'pictures',
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
             'employer', 'age_range', 'bio',
@@ -156,6 +161,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     def get_personal_email(self, obj):
         if getattr(self.context['request'], 'user') == obj or not obj.email_is_private:
             return obj.personal_email
+
 
 class ConnectionPercentageMixin(object):
     connection_percentage = serializers.SerializerMethodField()
@@ -183,12 +189,13 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
+    pictures = PictureSerializer(many=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'first_name', 'last_name', 'featured',
-            'picture', 'hobbies', 'social_profiles',
+            'picture', 'hobbies', 'social_profiles', 'pictures',
             'last_location', 'distance', 'connection_percentage',
             'employer', 'age_range', 'bio', 'hometown',
             'phone_number', 'personal_email'

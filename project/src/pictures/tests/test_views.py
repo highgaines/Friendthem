@@ -75,9 +75,10 @@ class PictureDeleteUpdateView(APITestCase):
 
     def test_delete_picture(self):
         response = self.client.delete(self.url)
-        assert 204 == response.status_code
+        assert 200 == response.status_code
         assert UserPicture.objects.filter(id=self.picture.id).exists() is False
         assert UserPicture.objects.filter(id=self.other_picture.id).exists() is True
+        assert response.json() == []
 
     def test_update_picture(self):
         data = {'url': 'http://example.com/example.jpg'}
@@ -85,6 +86,7 @@ class PictureDeleteUpdateView(APITestCase):
         assert 200 == response.status_code
         self.picture.refresh_from_db()
         assert 'http://example.com/example.jpg' == self.picture.url
+        assert response.json() == [{'id': 27, 'url': 'http://example.com/example.jpg'}]
 
     def test_update_400_for_invalid_url(self):
         data = {'url': 'invalid_url'}
@@ -124,11 +126,12 @@ class PictureListCreateView(APITestCase):
 
         assert 401 == response.status_code
 
-    def test_list_picture(self):
+    def test_list_pictures(self):
         response = self.client.get(self.url)
         assert 200 == response.status_code
         content = response.json()
         assert 1 == len(content)
+        assert content == [{'id': self.picture.id, 'url': self.picture.url}]
         assert self.picture.url == content[0]['url']
         assert self.picture.id == content[0]['id']
 
@@ -137,6 +140,8 @@ class PictureListCreateView(APITestCase):
         response = self.client.post(self.url, data)
         assert 201 == response.status_code
         assert 2 == UserPicture.objects.filter(user=self.user).count()
+        content = response.json()
+        assert 2 == len(content)
 
     def test_validation_error_for_user_with_6_pictures(self):
         mommy.make('UserPicture', user=self.user, _quantity=5)

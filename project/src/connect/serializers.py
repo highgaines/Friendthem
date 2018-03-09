@@ -62,5 +62,6 @@ class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer)
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'connection_percentage', 'employer', 'age_range', 'bio',
-            'phone_number', 'personal_email', 'hometown'
+            'phone_number', 'personal_email', 'hometown',
+            'pictures'
         )

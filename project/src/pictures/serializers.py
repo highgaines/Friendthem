@@ -7,11 +7,3 @@ class PictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPicture
         fields = ('id', 'user', 'url')
-
-    def validate(self, data):
-        if data['user'].pictures.count() >= 6:
-            raise serializers.ValidationError(
-                'User already has 6 pictures. '
-                'You must delete one before adding another.'
-            )
-        return data

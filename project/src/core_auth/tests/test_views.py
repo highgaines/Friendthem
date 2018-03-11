@@ -71,7 +71,7 @@ class RegisterUserViewTests(APITestCase):
 class UserDetailViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
-        social_profile = mommy.make('SocialProfile', user=self.user)
+        social_profile = mommy.make('UserSocialAuth', user=self.user)
         self.client.force_authenticate(self.user)
         self.url = reverse('user:me')
 
@@ -324,8 +324,9 @@ class CreateSocialProfileView(APITestCase):
         response = self.client.post(self.url, data=data)
 
         assert 201 == response.status_code
-        social_profile = self.user.social_profiles.get(provider='snapchat')
-        assert 'testuser' == social_profile.username
+        social_profile = self.user.social_auth.get(provider='snapchat')
+        assert 'testuser' == social_profile.extra_data['username']
+        assert 'testuser' == social_profile.uid
 
 
 class UpdateLocationTests(APITestCase):
@@ -377,7 +378,7 @@ class UpdateLocationTests(APITestCase):
 class NearbyUsersViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User, last_location=GEOSGeometry('POINT (0 0)'))
-        mommy.make('SocialProfile', user=self.user)
+        mommy.make('UserSocialAuth', user=self.user)
         self.client.force_authenticate(self.user)
         self.url = reverse('user:nearby_users')
 
@@ -395,7 +396,7 @@ class NearbyUsersViewTestCase(APITestCase):
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
-        mommy.make('SocialProfile', user=other_user_1)
+        mommy.make('UserSocialAuth', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         response = self.client.get(self.url + '?miles=200')
@@ -420,7 +421,7 @@ class NearbyUsersViewTestCase(APITestCase):
             _fill_optional=True
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
-        mommy.make('SocialProfile', user=other_user_1)
+        mommy.make('UserSocialAuth', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
@@ -462,7 +463,7 @@ class NearbyUsersViewTestCase(APITestCase):
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             ghost_mode=True
         )
-        mommy.make('SocialProfile', user=other_user_1)
+        mommy.make('UserSocialAuth', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
         other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
         featured_user = mommy.make(
@@ -491,7 +492,7 @@ class ChangePasswordViewTests(APITestCase):
         self.user.set_password('test123!')
         self.user.save()
 
-        mommy.make('SocialProfile', user=self.user)
+        mommy.make('UserSocialAuth', user=self.user)
         self.client.force_authenticate(self.user)
         self.url = reverse('user:change_password')
 

@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from src.pictures.models import UserPicture
 from src.pictures.pipelines import autoset_user_pictures
+from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
 class AutosetUserPicturesTestCase(TestCase):
     @patch('src.pictures.pipelines.FacebookProfilePicture')
@@ -79,7 +80,7 @@ class AutosetUserPicturesTestCase(TestCase):
 
         response = autoset_user_pictures(backend, user)
         mocked_service_cls.assert_not_called()
-        service.assert_not_called()
+        service.get_pictures.assert_not_called()
         assert 1 == user.pictures.count()
 
     @patch('src.pictures.pipelines.FacebookProfilePicture')
@@ -92,5 +93,19 @@ class AutosetUserPicturesTestCase(TestCase):
 
         response = autoset_user_pictures(backend, user)
         mocked_service_cls.assert_not_called()
-        service.assert_not_called()
+        service.get_pictures.assert_not_called()
+        assert 0 == user.pictures.count()
+
+    @patch('src.pictures.pipelines.FacebookProfilePicture')
+    def test_dont_set_user_picture_if_profile_album_not_found(self, mocked_service_cls):
+        service = Mock()
+        mocked_service_cls.return_value = service
+        service.get_pictures.side_effect = ProfilePicturesAlbumNotFound
+        user = mommy.make(settings.AUTH_USER_MODEL)
+        backend = Mock()
+        backend.name = 'facebook'
+
+        response = autoset_user_pictures(backend, user)
+        mocked_service_cls.assert_called_once_with(user)
+        service.get_pictures.assert_called_once_with()
         assert 0 == user.pictures.count()

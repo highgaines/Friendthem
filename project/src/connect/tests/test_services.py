@@ -4,7 +4,9 @@ from model_mommy import mommy
 
 from django.test import TestCase
 from django.conf import settings
-from src.connect.services import TwitterConnect, InstagramConnect, YoutubeConnect
+from src.connect.services.twitter import TwitterConnect
+from src.connect.services.instagram import InstagramConnect
+from src.connect.services.youtube import YoutubeConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
 class TwitterConnectTestCase(TestCase):

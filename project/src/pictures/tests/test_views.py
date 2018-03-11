@@ -58,14 +58,14 @@ class FacebookPicturesViewTestCase(APITestCase):
         mocked_service.assert_called_with(self.user)
         service.get_pictures.assert_called_with()
 
-class PictureDeleteView(APITestCase):
+class PictureDeleteUpdateView(APITestCase):
     def setUp(self):
         self.user = mommy.make(settings.AUTH_USER_MODEL)
         other_user = mommy.make(settings.AUTH_USER_MODEL)
         self.picture = mommy.make('UserPicture', user=self.user)
         self.other_picture = mommy.make('UserPicture', user=other_user)
         self.client.force_authenticate(self.user)
-        self.url = reverse('pictures:pictures_delete', kwargs={'pk': self.picture.id})
+        self.url = reverse('pictures:pictures_delete_update', kwargs={'pk': self.picture.id})
 
     def test_login_required(self):
         self.client.logout()
@@ -75,12 +75,31 @@ class PictureDeleteView(APITestCase):
 
     def test_delete_picture(self):
         response = self.client.delete(self.url)
-        assert 204 == response.status_code
+        assert 200 == response.status_code
         assert UserPicture.objects.filter(id=self.picture.id).exists() is False
         assert UserPicture.objects.filter(id=self.other_picture.id).exists() is True
+        assert response.json() == []
+
+    def test_update_picture(self):
+        data = {'url': 'http://example.com/example.jpg'}
+        response = self.client.put(self.url, data)
+        assert 200 == response.status_code
+        self.picture.refresh_from_db()
+        assert 'http://example.com/example.jpg' == self.picture.url
+        assert response.json() == [{'id': 27, 'url': 'http://example.com/example.jpg'}]
+
+    def test_update_400_for_invalid_url(self):
+        data = {'url': 'invalid_url'}
+        response = self.client.put(self.url, data)
+        assert 400 == response.status_code
 
     def test_404_for_picture_for_other_user(self):
-        self.url = reverse('pictures:pictures_delete', kwargs={'pk': self.other_picture.id})
+        self.url = reverse('pictures:pictures_delete_update', kwargs={'pk': self.other_picture.id})
+        response = self.client.update(self.url)
+        assert 404 == response.status_code
+
+    def test_404_for_picture_for_other_user(self):
+        self.url = reverse('pictures:pictures_delete_update', kwargs={'pk': self.other_picture.id})
         response = self.client.delete(self.url)
         assert 404 == response.status_code
         assert UserPicture.objects.filter(id=self.picture.id).exists() is True
@@ -107,11 +126,12 @@ class PictureListCreateView(APITestCase):
 
         assert 401 == response.status_code
 
-    def test_list_picture(self):
+    def test_list_pictures(self):
         response = self.client.get(self.url)
         assert 200 == response.status_code
         content = response.json()
         assert 1 == len(content)
+        assert content == [{'id': self.picture.id, 'url': self.picture.url}]
         assert self.picture.url == content[0]['url']
         assert self.picture.id == content[0]['id']
 
@@ -120,13 +140,5 @@ class PictureListCreateView(APITestCase):
         response = self.client.post(self.url, data)
         assert 201 == response.status_code
         assert 2 == UserPicture.objects.filter(user=self.user).count()
-
-    def test_validation_error_for_user_with_6_pictures(self):
-        mommy.make('UserPicture', user=self.user, _quantity=5)
-        data = {'url': 'http://example.com/test.jpg'}
-        response = self.client.post(self.url, data)
-        assert 400 == response.status_code
-        assert response.json() == {
-            'non_field_errors': ['User already has 6 pictures. You must delete one before adding another.']
-        }
-        assert 6 == UserPicture.objects.filter(user=self.user).count()
+        content = response.json()
+        assert 2 == len(content)

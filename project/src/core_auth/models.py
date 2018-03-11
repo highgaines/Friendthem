@@ -80,22 +80,6 @@ class User(AbstractUser):
         return super(User, self).save(*args, **kwargs)
 
 
-class SocialProfile(models.Model):
-    provider = models.CharField(max_length=32)
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name='social_profiles',
-        on_delete=models.CASCADE,
-    )
-    username = models.CharField(max_length=256)
-
-    class Meta:
-        unique_together = ('user', 'provider')
-
-    def __str__(self):
-        return str(self.user)
-
 class AuthError(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='auth_errors'

@@ -22,8 +22,3 @@ class TestUserManager(TestCase):
     def test_raise_error_if_email_in_empty_for_superuser(self):
         with pytest.raises(ValueError):
             User.objects.create_superuser('', 'TesT!45D2')
-
-class TestSocialProfile(TestCase):
-    def test_social_profile_str(self):
-        profile = mommy.make('SocialProfile')
-        assert str(profile) == profile.user.email

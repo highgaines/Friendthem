@@ -1,0 +1,2 @@
+class ProfilePicturesAlbumNotFound(Exception):
+    pass

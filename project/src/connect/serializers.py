@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from src.core_auth.serializers import (ConnectionPercentageMixin,
                                        RetrieveUserSerializer,
                                        SocialProfileSerializer)
+from src.pictures.serializers import PictureSerializer
 from src.notifications.services import notify_user
 
 from src.connect.models import Connection
@@ -52,7 +53,8 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
     connection_percentage = serializers.SerializerMethodField()
-    social_profiles = SocialProfileSerializer(many=True)
+    social_profiles = SocialProfileSerializer(many=True, source='social_auth')
+    pictures = PictureSerializer(many=True)
 
     class Meta:
         model = User
@@ -60,5 +62,6 @@ class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer)
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles',
             'connection_percentage', 'employer', 'age_range', 'bio',
-            'phone_number', 'personal_email', 'hometown'
+            'phone_number', 'personal_email', 'hometown',
+            'pictures'
         )

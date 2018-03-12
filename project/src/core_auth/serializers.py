@@ -20,6 +20,7 @@ class AuthErrorSerializer(serializers.ModelSerializer):
         model = AuthError
         fields = ('provider', 'message')
 
+
 class SocialAuthUsernameField(serializers.Field):
     def to_representation(self, obj):
         return obj.get('username')
@@ -43,6 +44,7 @@ class SocialProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['uid'] = validated_data['extra_data']['username']
         return UserSocialAuth.objects.create(**validated_data)
+
 
 class UserSerializer(serializers.ModelSerializer):
     client_id = serializers.CharField(write_only=True)
@@ -82,10 +84,10 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        user = User.objects.create(
-            email=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
+        password = validated_data.pop('password')
+        validated_data['email'] = validated_data.pop('username')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
         user.save()
         return user
 
@@ -116,6 +118,7 @@ class TokenSerializer(serializers.ModelSerializer):
     def get_auth_time(self, obj):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

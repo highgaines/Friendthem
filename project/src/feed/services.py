@@ -88,7 +88,7 @@ class FacebookFeed(object):
         if item.get('attachments'):
             attachment_data = item['attachments']['data']
             data = [
-                d['media']['image'] for d in attachment_data if d.get('media').get('image')]
+                d['media']['image'] for d in attachment_data if d.get('media', {}).get('image')]
             if data:
                 return data[0]['src']
 

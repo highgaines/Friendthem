@@ -46,8 +46,6 @@ class InstagramFeedTestCase(APITestCase):
 
         assert 2 == mocked_format.call_count
 
-
-
     def test_get_feed_raises_error_if_other_insta_user_does_not_exist(self):
         other_user = mommy.make(settings.AUTH_USER_MODEL)
         feed = InstagramFeed(self.user)

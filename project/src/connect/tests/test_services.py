@@ -1,9 +1,12 @@
+import time
 from unittest.mock import Mock, patch
 import pytest
 from model_mommy import mommy
 
+from social_django.models import UserSocialAuth
 from django.test import TestCase
 from django.conf import settings
+
 from src.connect.services.twitter import TwitterConnect
 from src.connect.services.instagram import InstagramConnect
 from src.connect.services.youtube import YoutubeConnect
@@ -227,6 +230,26 @@ class YoutubeConnectTestCase(TestCase):
         self.user_social_auth.save()
         with pytest.raises(CredentialsNotFound):
             connect = YoutubeConnect(self.user)
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_authenticate_calls_refresh_if_token_expired(self, load_strategy, refresh, credentials, google):
+        self.user_social_auth.extra_data.update(
+            {'authtime': int(time.time()), 'expires': 360}
+        )
+        self.user_social_auth.save()
+        connect = YoutubeConnect(self.user)
+        credentials.Credentials.assert_called_once_with(
+                token='123456',
+                client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+        )
+        google.discovery.build.assert_called_once_with(
+            'youtube', 'v3', credentials=credentials.Credentials.return_value
+        )
+        refresh.assert_called_once_with(load_strategy.return_value)
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')

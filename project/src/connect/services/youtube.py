@@ -1,6 +1,8 @@
+import time
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+from social_django.utils import load_strategy
 import googleapiclient.discovery, google.oauth2.credentials
 from src.connect.services.base import BaseConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
@@ -12,6 +14,13 @@ class YoutubeConnect(BaseConnect):
             token_key = social_auth.extra_data['access_token']
         except (ObjectDoesNotExist, KeyError):
             raise CredentialsNotFound('google-oauth2', user)
+
+        expiration_time = (
+            social_auth.extra_data.get('authtime', 0)
+            + social_auth.extra_data.get('expires', 0)
+        )
+        if  expiration_time > int(time.time()):
+            social_auth.refresh_token(load_strategy())
 
         credentials = google.oauth2.credentials.Credentials(
             token=social_auth.extra_data['access_token'],

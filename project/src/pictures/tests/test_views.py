@@ -142,3 +142,13 @@ class PictureListCreateView(APITestCase):
         assert 2 == UserPicture.objects.filter(user=self.user).count()
         content = response.json()
         assert 2 == len(content)
+
+    def test_validation_error_for_user_with_6_pictures(self):
+        mommy.make('UserPicture', user=self.user, _quantity=5)
+        data = {'url': 'http://example.com/test.jpg'}
+        response = self.client.post(self.url, data)
+        assert 400 == response.status_code
+        assert response.json() == {
+            'non_field_errors': ['User already has 6 pictures. You must delete one before adding another.']
+        }
+        assert 6 == UserPicture.objects.filter(user=self.user).count()

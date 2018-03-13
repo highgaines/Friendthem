@@ -4,9 +4,43 @@ from model_mommy import mommy
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from src.core_auth.pipelines import profile_data
+from src.core_auth.pipelines import profile_data, get_user
 
 User = get_user_model()
+
+class GetUserTestCase(TestCase):
+    def test_get_user_from_strategy_if_not_in_kwargs(self):
+        user = mommy.make(User)
+        strategy = Mock()
+        strategy.request.user = user
+        response = get_user(strategy)
+
+        assert response['user'] == user
+
+    def test_get_user_from_kwargs(self):
+        user = mommy.make(User)
+        strategy = Mock()
+        response = get_user(strategy, user=user)
+
+        assert response['user'] == user
+
+    def test_get_user_gets_user_from_kwargs_if_in_kwargs_and_strategy(self):
+        user = mommy.make(User)
+        other_user = mommy.make(User)
+        strategy = Mock()
+        strategy.request.user = other_user
+        response = get_user(strategy, user=user)
+
+        assert response['user'] == user
+
+    def test_return_none_if_anonymous_user(self):
+        strategy = Mock()
+        strategy.request.user.is_anonymous = True
+        response = get_user(strategy)
+
+        assert response is None
+
+
 
 class ProfileDataTestCase(TestCase):
     def setUp(self):

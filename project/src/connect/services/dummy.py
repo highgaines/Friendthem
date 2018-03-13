@@ -6,5 +6,5 @@ class DummyConnect(BaseConnect):
     def connect(self, other_user):
         return False
 
-    def connect_users(self, other_user):
+    def connect_users(self):
         return []

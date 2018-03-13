@@ -52,7 +52,7 @@ class TwitterConnect(BaseConnect):
         for friend in existing_friends:
             other_user = friend.user
             connection, _ = Connection.objects.update_or_create(
-                user_1=self.user, user_2=other_user, provider='twitter'
+                    user_1=self.user, user_2=other_user, provider='twitter', defaults={'confirmed': True}
             )
             connections.append(connection)
 

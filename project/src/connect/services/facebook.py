@@ -35,7 +35,8 @@ class FacebookConnect(DummyConnect):
             other_user = friend.user
             connections.append(
                 Connection.objects.update_or_create(
-                user_1=self.user, user_2=other_user, defaults={'confirmed': True}
+                user_1=self.user, user_2=other_user,
+                provider=self.provider, defaults={'confirmed': True}
                 )[0]
             )
 

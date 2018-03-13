@@ -1,4 +1,6 @@
 import time
+import requests
+from facebook import GraphAPI
 from unittest.mock import Mock, patch
 import pytest
 from model_mommy import mommy
@@ -10,6 +12,7 @@ from django.conf import settings
 from src.connect.services.twitter import TwitterConnect
 from src.connect.services.instagram import InstagramConnect
 from src.connect.services.youtube import YoutubeConnect
+from src.connect.services.facebook import FacebookConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 from src.connect.models import Connection
 
@@ -337,3 +340,55 @@ class YoutubeConnectTestCase(TestCase):
         with pytest.raises(SocialUserNotFound):
             connection = connect.connect(self.other_user)
         api_object.subscriptions().insert.assert_not_called()
+
+class FacebookConnectTestCase(TestCase):
+    def setUp(self):
+        self.user_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='facebook',
+            extra_data={'access_token': '123456'}
+        )
+        self.user = self.user_social_auth.user
+
+        self.other_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='facebook',
+            extra_data={'youtube_channel': 'UCTestYoutubeChannel'}
+        )
+        self.other_user = self.other_social_auth.user
+
+    @patch.object(GraphAPI, 'get_connections')
+    @patch.object(requests, 'get')
+    def test_connect_friends(self, mocked_get, mocked_fb_connections):
+        mocked_fb_connections.return_value = {'data':
+            [{'id': self.other_social_auth.uid}]
+        }
+        service = FacebookConnect(self.user)
+        connections = service.connect_friends()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch.object(GraphAPI, 'get_connections')
+    @patch.object(requests, 'get')
+    def test_connect_friends_with_paging_and_unexisting_user(self, mocked_get, mocked_fb_connections):
+        mocked_fb_connections.return_value = {
+            'data': [{'id': self.other_social_auth.uid}],
+            'paging': {'next': 'http://fb.com/next'}
+        }
+        return_get = Mock()
+        return_get.json.return_value = {
+            'data': [{'id': 'other_id'}]
+        }
+        mocked_get.return_value = return_get
+        service = FacebookConnect(self.user)
+        connections = service.connect_friends()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True

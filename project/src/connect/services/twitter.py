@@ -36,7 +36,7 @@ class TwitterConnect(BaseConnect):
             return True
         return False
 
-    def connect_friends(self):
+    def connect_users(self):
         connections = []
         friends = []
         cursor = -1

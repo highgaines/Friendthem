@@ -8,14 +8,14 @@ class FacebookConnect(DummyConnect):
     def _authenticate(self, user):
         try:
             access_token = user.social_auth.get(
-                provider='facebook'
+                provider=self.provider
             ).extra_data['access_token']
         except (KeyError, ObjectDoesNotExist):
             raise CredentialsNotFound(self.provider, user)
 
         return facebook.GraphAPI(access_token)
 
-    def connect_friends(self):
+    def connect_users(self):
         connections = []
         friends_data = self.api.get_connections('me', 'friends', fields='id', limit=500)
         friends = [data['id'] for data in friends_data['data']]

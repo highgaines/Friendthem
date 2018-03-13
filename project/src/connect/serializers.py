@@ -26,7 +26,7 @@ class ConnectionSerializer(serializers.ModelSerializer):
     def _get_connect_class(self, provider):
         return getattr(
             services,
-            '{}Connect'.format(provider.capitalize()),
+            f'{provider.capitalize()}Connect',
             services.DummyConnect
         )
 

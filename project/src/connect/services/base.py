@@ -8,3 +8,6 @@ class BaseConnect(object):
 
     def connect(self, other_user):
         raise NotImplemented
+
+    def connect_users(self):
+        raise NotImplemented

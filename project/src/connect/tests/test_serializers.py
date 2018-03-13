@@ -8,9 +8,9 @@ from src.connect.exceptions import CredentialsNotFound
 
 class ConnectionSerializerTestCase(APITestCase):
     def test_serializer_validation_passes_and_creates_object_for_facebook(self):
-        social_1 = mommy.make('UserSocialAuth')
+        social_1 = mommy.make('UserSocialAuth', provider='facebook', extra_data={'access_token': 'access_token'})
         user_1 = social_1.user
-        social_2 = mommy.make('UserSocialAuth')
+        social_2 = mommy.make('UserSocialAuth', provider='facebook')
         user_2 = social_2.user
 
         request = Mock()

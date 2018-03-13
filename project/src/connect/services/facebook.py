@@ -1,7 +1,10 @@
 import facebook, requests
-from src.connect.services.dummy import DummyConnect
+from django.core.exceptions import ObjectDoesNotExist
 from social_django.models import UserSocialAuth
+
+from src.connect.exceptions import CredentialsNotFound
 from src.connect.models import Connection
+from src.connect.services.dummy import DummyConnect
 
 class FacebookConnect(DummyConnect):
     provider = 'facebook'

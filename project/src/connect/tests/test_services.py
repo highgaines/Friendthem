@@ -104,7 +104,7 @@ class TwitterConnectTestCase(TestCase):
         api_object.CreateFriendship.assert_not_called()
 
     @patch('src.connect.services.twitter.twitter')
-    def test_connect_friends(self, mocked_twitter):
+    def test_connect_users(self, mocked_twitter):
         api_object = Mock()
         friend = Mock()
         friend.id_str = str(self.other_social_auth.uid)
@@ -112,7 +112,7 @@ class TwitterConnectTestCase(TestCase):
         api_object.GetFriendIDsPaged.return_value = (None, None, friends)
         mocked_twitter.Api.return_value = api_object
         service = TwitterConnect(self.user)
-        connections = service.connect_friends()
+        connections = service.connect_users()
 
         connection = Connection.objects.first()
         assert connections == [connection]
@@ -121,7 +121,7 @@ class TwitterConnectTestCase(TestCase):
         assert connection.confirmed is True
 
     @patch('src.connect.services.twitter.twitter')
-    def test_connect_friends_with_paging_and_unexisting_user(self, mocked_twitter):
+    def test_connect_users_with_paging_and_unexisting_user(self, mocked_twitter):
         api_object = Mock()
         friend_1 = Mock()
         friend_2 = Mock()
@@ -135,7 +135,7 @@ class TwitterConnectTestCase(TestCase):
         ]
         mocked_twitter.Api.return_value = api_object
         service = TwitterConnect(self.user)
-        connections = service.connect_friends()
+        connections = service.connect_users()
 
         connection = Connection.objects.first()
         assert connections == [connection]
@@ -359,12 +359,12 @@ class FacebookConnectTestCase(TestCase):
 
     @patch.object(GraphAPI, 'get_connections')
     @patch.object(requests, 'get')
-    def test_connect_friends(self, mocked_get, mocked_fb_connections):
+    def test_connect_users(self, mocked_get, mocked_fb_connections):
         mocked_fb_connections.return_value = {'data':
             [{'id': self.other_social_auth.uid}]
         }
         service = FacebookConnect(self.user)
-        connections = service.connect_friends()
+        connections = service.connect_users()
 
         connection = Connection.objects.first()
         assert connections == [connection]
@@ -374,7 +374,7 @@ class FacebookConnectTestCase(TestCase):
 
     @patch.object(GraphAPI, 'get_connections')
     @patch.object(requests, 'get')
-    def test_connect_friends_with_paging_and_unexisting_user(self, mocked_get, mocked_fb_connections):
+    def test_connect_users_with_paging_and_unexisting_user(self, mocked_get, mocked_fb_connections):
         mocked_fb_connections.return_value = {
             'data': [{'id': self.other_social_auth.uid}],
             'paging': {'next': 'http://fb.com/next'}
@@ -385,7 +385,7 @@ class FacebookConnectTestCase(TestCase):
         }
         mocked_get.return_value = return_get
         service = FacebookConnect(self.user)
-        connections = service.connect_friends()
+        connections = service.connect_users()
 
         connection = Connection.objects.first()
         assert connections == [connection]

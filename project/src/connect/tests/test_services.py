@@ -107,8 +107,7 @@ class TwitterConnectTestCase(TestCase):
     def test_connect_users(self, mocked_twitter):
         api_object = Mock()
         friend = Mock()
-        friend.id_str = str(self.other_social_auth.uid)
-        friends = [friend]
+        friends = [self.other_social_auth.uid]
         api_object.GetFriendIDsPaged.return_value = (None, None, friends)
         mocked_twitter.Api.return_value = api_object
         service = TwitterConnect(self.user)
@@ -126,10 +125,8 @@ class TwitterConnectTestCase(TestCase):
         friend_1 = Mock()
         friend_2 = Mock()
 
-        friend_1.id_str = str(self.other_social_auth.uid)
-        friend_2.id_str = 'unexisting_uid'
-        first_friends = [friend_1]
-        last_friends = [friend_2]
+        first_friends = [self.other_social_auth.uid]
+        last_friends = ['invalid_id']
         api_object.GetFriendIDsPaged.side_effect = [
             (2, None, first_friends), (None, None, last_friends)
         ]

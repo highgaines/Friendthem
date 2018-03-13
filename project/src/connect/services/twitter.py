@@ -42,7 +42,7 @@ class TwitterConnect(BaseConnect):
         cursor = -1
         while True:
             cursor, previous, twitter_users = self.api.GetFriendIDsPaged(cursor)
-            friends +=  [ u.id_str for u in twitter_users ]
+            friends +=  twitter_users
             if cursor is None:
                 break;
 

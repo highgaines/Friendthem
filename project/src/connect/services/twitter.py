@@ -43,7 +43,7 @@ class TwitterConnect(BaseConnect):
         while True:
             cursor, previous, twitter_users = self.api.GetFriendIDsPaged(cursor)
             friends +=  twitter_users
-            if cursor is None:
+            if cursor == 0:
                 break;
 
         existing_friends = UserSocialAuth.objects.filter(

@@ -11,6 +11,7 @@ from src.connect.services.twitter import TwitterConnect
 from src.connect.services.instagram import InstagramConnect
 from src.connect.services.youtube import YoutubeConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
+from src.connect.models import Connection
 
 class TwitterConnectTestCase(TestCase):
     def setUp(self):
@@ -98,6 +99,46 @@ class TwitterConnectTestCase(TestCase):
         with pytest.raises(SocialUserNotFound):
             connection = connect.connect(self.other_user)
         api_object.CreateFriendship.assert_not_called()
+
+    @patch('src.connect.services.twitter.twitter')
+    def test_connect_friends(self, mocked_twitter):
+        api_object = Mock()
+        friend = Mock()
+        friend.id_str = str(self.other_social_auth.uid)
+        friends = [friend]
+        api_object.GetFriendIDsPaged.return_value = (None, None, friends)
+        mocked_twitter.Api.return_value = api_object
+        service = TwitterConnect(self.user)
+        connections = service.connect_friends()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.twitter.twitter')
+    def test_connect_friends_with_paging_and_unexisting_user(self, mocked_twitter):
+        api_object = Mock()
+        friend_1 = Mock()
+        friend_2 = Mock()
+
+        friend_1.id_str = str(self.other_social_auth.uid)
+        friend_2.id_str = 'unexisting_uid'
+        first_friends = [friend_1]
+        last_friends = [friend_2]
+        api_object.GetFriendIDsPaged.side_effect = [
+            (2, None, first_friends), (None, None, last_friends)
+        ]
+        mocked_twitter.Api.return_value = api_object
+        service = TwitterConnect(self.user)
+        connections = service.connect_friends()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
 
 
 class InstagramConnectTestCase(TestCase):

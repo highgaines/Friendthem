@@ -21,3 +21,27 @@ class ConnectExistingFriendsTestCase(TestCase):
         mocked_services.FacebookConnect.assert_called_once_with(self.user)
         facebook_connect.connect_users.assert_called_once_with()
 
+    @patch('src.connect.pipelines.services')
+    def test_connect_existing_friends_calls_twitter_connect(self, mocked_services):
+        twitter_connect = Mock()
+        twitter_connect.connect_users.return_value = []
+        mocked_services.TwitterConnect.return_value = twitter_connect
+        self.backend.name = 'twitter-oauth2'
+
+        connect_existing_friends(self.backend, self.user)
+
+        mocked_services.TwitterConnect.assert_called_once_with(self.user)
+        twitter_connect.connect_users.assert_called_once_with()
+
+    @patch('src.connect.pipelines.services')
+    def test_connect_existing_friends_calls_youtube_connect(self, mocked_services):
+        youtube_connect = Mock()
+        youtube_connect.connect_users.return_value = []
+        mocked_services.YoutubeConnect.return_value = youtube_connect
+        self.backend.name = 'google-oauth2'
+
+        connect_existing_friends(self.backend, self.user)
+
+        mocked_services.YoutubeConnect.assert_called_once_with(self.user)
+        youtube_connect.connect_users.assert_called_once_with()
+

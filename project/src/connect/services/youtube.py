@@ -4,10 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from social_django.utils import load_strategy
 import googleapiclient.discovery, google.oauth2.credentials
-from src.connect.services.base import BaseConnect
+from src.connect.services.dummy import DummyConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
-class YoutubeConnect(BaseConnect):
+class YoutubeConnect(DummyConnect):
     def _authenticate(self, user):
         try:
             social_auth = user.social_auth.get(provider='google-oauth2')

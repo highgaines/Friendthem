@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.gis.db.models import PointField
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -86,3 +88,19 @@ class AuthError(models.Model):
     )
     provider = models.CharField(max_length=32)
     message = models.TextField()
+
+
+@receiver(post_save, sender=User, dispatch_uid='pull_profile_pictures')
+def pull_profile_pictures_from_facebook(sender, instance, **kwargs):
+    facebook_auths = instance.social_auth.filter(provider='facebook')
+    if instance.featured and facebook_auths and not instance.pictures.all():
+        uid = facebook_auths[0].uid
+        service = FacebookProfilePicture(
+            access_token='{}|{}'.format(
+                settings.SOCIAL_AUTH_FACEBOOK_KEY, settings.SOCIAL_AUTH_FACEBOOK_SECRET
+            )
+        )
+        service.get_pictures(uid=facebook_user.uid)[:6]
+        picture_objs = [
+            instance.pictures.create(url=picture['picture']) for picture in pictures
+        ]

@@ -1,3 +1,4 @@
+from facebook import GraphAPIError
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.fields import ArrayField
@@ -110,5 +111,5 @@ def pull_profile_pictures_from_facebook(sender, instance, **kwargs):
                 instance.pictures.create(url=picture['picture'])
                 for picture in pictures
             ]
-        except ProfilePicturesAlbumNotFound:
+        except (ProfilePicturesAlbumNotFound, GraphAPIError):
             pass

@@ -102,7 +102,7 @@ def pull_profile_pictures_from_facebook(sender, instance, **kwargs):
                 settings.SOCIAL_AUTH_FACEBOOK_KEY, settings.SOCIAL_AUTH_FACEBOOK_SECRET
             )
         )
-        service.get_pictures(uid=facebook_user.uid)[:6]
+        service.get_pictures(uid=uid)[:6]
         picture_objs = [
             instance.pictures.create(url=picture['picture']) for picture in pictures
         ]

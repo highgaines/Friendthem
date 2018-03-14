@@ -55,7 +55,7 @@ class YoutubeConnect(DummyConnect):
     def connect_users(self):
         connections = []
         channels_data = self.api.subscriptions().list(
-            part='snippet', mine=True, max_results=50
+            part='snippet', mine=True, maxResults=50
         ).execute()
         channels_ids = [
             data['snippet']['resourceId']['channelId'] for data in
@@ -67,7 +67,7 @@ class YoutubeConnect(DummyConnect):
                 next_page_token = channels_data['nextPageToken']
                 channels_data = self.api.subscriptions().list(
                     part='snippet', mine=True, maxResults=50,
-                    nextPageToken=next_page_token
+                    pageToken=next_page_token
                 ).execute()
                 channels_ids += [
                     data['snippet']['resourceId']['channelId'] for data in

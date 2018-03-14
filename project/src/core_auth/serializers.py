@@ -55,6 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True, read_only=True)
+    last_location = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -63,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 'client_id', 'client_secret', 'grant_type',
             'picture', 'social_profiles', 'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email','ghost_mode',
-            'employer', 'age_range', 'bio', 'pictures',
+            'employer', 'age_range', 'bio', 'pictures', 'last_location',
             'notifications', 'email_is_private', 'phone_is_private',
         )
 
@@ -82,6 +83,10 @@ class UserSerializer(serializers.ModelSerializer):
         except Application.DoesNotExist:
             raise serializers.ValidationError('Application not found.')
         return data
+
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -121,6 +126,8 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    last_location = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -128,8 +135,12 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications',
             'employer', 'age_range', 'bio',
-            'email_is_private', 'phone_is_private',
+            'email_is_private', 'phone_is_private', 'last_location',
         )
+
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
 
 class LocationSerializer(serializers.ModelSerializer):

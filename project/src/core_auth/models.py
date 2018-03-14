@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
 from src.pictures.services import FacebookProfilePicture
+from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, *args, **kwargs):
@@ -96,13 +97,18 @@ class AuthError(models.Model):
 def pull_profile_pictures_from_facebook(sender, instance, **kwargs):
     facebook_auths = instance.social_auth.filter(provider='facebook')
     if instance.featured and facebook_auths and not instance.pictures.all():
-        uid = facebook_auths[0].uid
-        service = FacebookProfilePicture(
-            access_token='{}|{}'.format(
-                settings.SOCIAL_AUTH_FACEBOOK_KEY, settings.SOCIAL_AUTH_FACEBOOK_SECRET
+        try:
+            uid = facebook_auths[0].uid
+            service = FacebookProfilePicture(
+                access_token='{}|{}'.format(
+                    settings.SOCIAL_AUTH_FACEBOOK_KEY,
+                    settings.SOCIAL_AUTH_FACEBOOK_SECRET
+                )
             )
-        )
-        pictures = service.get_pictures(uid=uid)[:6]
-        picture_objs = [
-            instance.pictures.create(url=picture['picture']) for picture in pictures
-        ]
+            pictures = service.get_pictures(uid=uid)[:6]
+            picture_objs = [
+                instance.pictures.create(url=picture['picture'])
+                for picture in pictures
+            ]
+        except ProfilePicturesAlbumNotFound:
+            pass

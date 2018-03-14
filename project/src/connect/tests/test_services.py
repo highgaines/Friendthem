@@ -250,11 +250,12 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_authenticate_calls_api_with_tokens(self, mocked_credentials, mocked_google):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_authenticate_calls_api_with_tokens(self, mocked_strategy, mocked_refresh, mocked_credentials, mocked_google):
         connect = YoutubeConnect(self.user)
         mocked_credentials.Credentials.assert_called_once_with(
                 token='123456',
-                refresh_token='654321',
                 client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                 client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )
@@ -279,7 +280,7 @@ class YoutubeConnectTestCase(TestCase):
     @patch('src.connect.services.youtube.load_strategy')
     def test_authenticate_calls_refresh_if_token_expired(self, load_strategy, refresh, credentials, google):
         self.user_social_auth.extra_data.update(
-            {'authtime': int(time.time()), 'expires': 360}
+            {'authtime': int(time.time()) - 360, 'expires': 60}
         )
         self.user_social_auth.save()
         connect = YoutubeConnect(self.user)
@@ -287,7 +288,6 @@ class YoutubeConnectTestCase(TestCase):
                 token='123456',
                 client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                 client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
-                refresh_token='654321'
         )
         google.discovery.build.assert_called_once_with(
             'youtube', 'v3', credentials=credentials.Credentials.return_value
@@ -296,7 +296,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_calls_create_subscription(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_calls_create_subscription(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -315,7 +317,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_user_social_auth_does_not_exist(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -328,7 +332,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -342,7 +348,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -356,7 +364,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_users(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_users(self, mocked_strategy, mocked_refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         subscriptions = Mock()
         list_action = Mock()
@@ -385,7 +395,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_users_with_paging_and_unexisting_user(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_users_with_paging_and_unexisting_user(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         subscriptions = Mock()
         list_action = Mock()
@@ -417,7 +429,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_dont_connect_users_if_no_channel_ids(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_dont_connect_users_if_no_channel_ids(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         subscriptions = Mock()
         list_action = Mock()

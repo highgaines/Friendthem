@@ -16,10 +16,10 @@ django-phonenumber-field==2.0.0
 onesignal-sdk==0.1.1
 django-map-widgets==0.1.9
 google-api-python-client==1.6.5
-google-auth==1.2.1
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.2.0
 gunicorn==19.7.1
 Unipath==1.1
 whitenoise==3.3.1
 raven==6.6.0
+google-auth==1.4.1

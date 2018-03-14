@@ -20,15 +20,14 @@ class YoutubeConnect(DummyConnect):
             raise CredentialsNotFound('google-oauth2', user)
 
         expiration_time = (
-            social_auth.extra_data.get('authtime', 0)
+            social_auth.extra_data.get('auth_time', 0)
             + social_auth.extra_data.get('expires', 0)
         )
-        if  expiration_time > int(time.time()):
+        if  expiration_time < int(time.time()):
             social_auth.refresh_token(load_strategy())
 
         credentials = google.oauth2.credentials.Credentials(
             token=social_auth.extra_data['access_token'],
-            refresh_token=social_auth.extra_data.get('refresh_token'),
             client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )

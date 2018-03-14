@@ -2,7 +2,7 @@ import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
 
 def get_user(strategy, *args, **kwargs):
-    user = strategy.request.user
+    user = kwargs.get('user', strategy.request.user)
     if user.is_anonymous:
         return
     return {'user': user}

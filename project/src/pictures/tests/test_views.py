@@ -88,6 +88,15 @@ class PictureDeleteUpdateView(APITestCase):
         assert 'http://example.com/example.jpg' == self.picture.url
         assert response.json() == [{'id': 27, 'url': 'http://example.com/example.jpg'}]
 
+    def test_update_picture_ignore_6_pic_validation(self):
+        data = {'url': 'http://example.com/example.jpg'}
+        mommy.make('UserPicture', user=self.user, _quantity=5)
+        response = self.client.put(self.url, data)
+        assert 200 == response.status_code
+        self.picture.refresh_from_db()
+        assert 'http://example.com/example.jpg' == self.picture.url
+        assert 6 == len(response.json())
+
     def test_update_400_for_invalid_url(self):
         data = {'url': 'invalid_url'}
         response = self.client.put(self.url, data)
@@ -142,3 +151,13 @@ class PictureListCreateView(APITestCase):
         assert 2 == UserPicture.objects.filter(user=self.user).count()
         content = response.json()
         assert 2 == len(content)
+
+    def test_validation_error_for_user_with_6_pictures(self):
+        mommy.make('UserPicture', user=self.user, _quantity=5)
+        data = {'url': 'http://example.com/test.jpg'}
+        response = self.client.post(self.url, data)
+        assert 400 == response.status_code
+        assert response.json() == {
+            'non_field_errors': ['User already has 6 pictures. You must delete one before adding another.']
+        }
+        assert 6 == UserPicture.objects.filter(user=self.user).count()

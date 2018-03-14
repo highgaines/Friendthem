@@ -2,10 +2,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from instagram import InstagramAPI
-from src.connect.services.base import BaseConnect
+from src.connect.services.dummy import DummyConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
 
-class InstagramConnect(BaseConnect):
+class InstagramConnect(DummyConnect):
     def _authenticate(self, user):
         try:
             social_auth = user.social_auth.get(provider='instagram')

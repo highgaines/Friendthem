@@ -2,8 +2,11 @@ import twitter
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+
+from social_django.models import UserSocialAuth
 from src.connect.services.base import BaseConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
+from src.connect.models import Connection
 
 class TwitterConnect(BaseConnect):
     def _authenticate(self, user):
@@ -32,3 +35,25 @@ class TwitterConnect(BaseConnect):
         if friendship.following:
             return True
         return False
+
+    def connect_users(self):
+        connections = []
+        friends = []
+        cursor = -1
+        while True:
+            cursor, previous, twitter_users = self.api.GetFriendIDsPaged(cursor)
+            friends +=  twitter_users
+            if cursor == 0:
+                break;
+
+        existing_friends = UserSocialAuth.objects.filter(
+            provider='twitter', uid__in=friends
+        )
+        for friend in existing_friends:
+            other_user = friend.user
+            connection, _ = Connection.objects.update_or_create(
+                    user_1=self.user, user_2=other_user, provider='twitter', defaults={'confirmed': True}
+            )
+            connections.append(connection)
+
+        return connections

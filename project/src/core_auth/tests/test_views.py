@@ -38,6 +38,34 @@ class RegisterUserViewTests(APITestCase):
         access_token = AccessToken.objects.get(token=content['access_token'])
         assert user == access_token.user
 
+    def test_register_user_with_addional_data(self):
+        data = {
+            'client_id': self.application.client_id,
+            'client_secret': self.application.client_secret,
+            'grant_type': 'password',
+            'username': 'xpto@example.com',
+            'password': '123456',
+            'first_name': 'Test',
+            'last_name': 'User'
+        }
+        response = self.client.post(self.url, data)
+        content = response.json()
+
+        assert 200 == response.status_code
+        assert 'access_token' in content
+        assert 'expires_in' in content
+        assert 'scope' in content
+        assert 'refresh_token' in content
+        assert 'Bearer' == content['token_type']
+
+        assert 1 == User.objects.count()
+        user = User.objects.first()
+        access_token = AccessToken.objects.get(token=content['access_token'])
+        assert user == access_token.user
+        assert user.email == 'xpto@example.com'
+        assert user.first_name == 'Test'
+        assert user.last_name == 'User'
+
     def test_raises_400_if_invalid_application(self):
         data = {
             'client_id': 'invalid id',

@@ -8,9 +8,9 @@ from src.connect.exceptions import CredentialsNotFound
 
 class ConnectionSerializerTestCase(APITestCase):
     def test_serializer_validation_passes_and_creates_object_for_facebook(self):
-        social_1 = mommy.make('UserSocialAuth')
+        social_1 = mommy.make('UserSocialAuth', provider='facebook', extra_data={'access_token': 'access_token'})
         user_1 = social_1.user
-        social_2 = mommy.make('UserSocialAuth')
+        social_2 = mommy.make('UserSocialAuth', provider='facebook')
         user_2 = social_2.user
 
         request = Mock()
@@ -63,8 +63,8 @@ class ConnectionSerializerTestCase(APITestCase):
         assert serializer.is_valid() is True
         connection = serializer.save()
         assert serializer.data['user_2'] == user_2.id
-        assert serializer.data['user_2_data']['phone_number'] == None
-        assert serializer.data['user_2_data']['personal_email'] == None
+        assert serializer.data['user_2_data']['phone_number'] == user_2.phone_number
+        assert serializer.data['user_2_data']['personal_email'] == user_2.personal_email
         assert serializer.data['provider'] == 'youtube'
         assert serializer.data['confirmed'] == True
         assert serializer.data['notified'] == False
@@ -97,8 +97,8 @@ class ConnectionSerializerTestCase(APITestCase):
         assert serializer.is_valid() is True
         connection = serializer.save()
         assert serializer.data['user_2'] == user_2.id
-        assert serializer.data['user_2_data']['phone_number'] == None
-        assert serializer.data['user_2_data']['personal_email'] == None
+        assert serializer.data['user_2_data']['phone_number'] == user_2.phone_number
+        assert serializer.data['user_2_data']['personal_email'] == user_2.personal_email
         assert serializer.data['provider'] == 'youtube'
         assert serializer.data['confirmed'] == True
         assert serializer.data['notified'] == True

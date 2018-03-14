@@ -176,6 +176,7 @@ SOCIAL_AUTH_PIPELINE = [
     'src.core_auth.pipelines.profile_data',
     'src.core_auth.pipelines.get_youtube_channel',
     'src.pictures.pipelines.autoset_user_pictures',
+    'src.connect.pipelines.connect_existing_friends',
 ]
 
 
@@ -199,6 +200,11 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE =  [
 SOCIAL_AUTH_GOOGLE_OAUTH2_IGNORE_DEFAULT_SCOPE = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_USE_DEPRECATED_API = True
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+   'access_type': 'offline',
+   'include_granted_scopes': 'true',
+}
+
+SOCIAL_AUTH_GOOGLE_PLUS_AUTH_EXTRA_ARGUMENTS = {
    'access_type': 'offline',
 }
 

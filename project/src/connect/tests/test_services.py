@@ -1,13 +1,20 @@
+import time
+import requests
+from facebook import GraphAPI
 from unittest.mock import Mock, patch
 import pytest
 from model_mommy import mommy
 
+from social_django.models import UserSocialAuth
 from django.test import TestCase
 from django.conf import settings
+
 from src.connect.services.twitter import TwitterConnect
 from src.connect.services.instagram import InstagramConnect
 from src.connect.services.youtube import YoutubeConnect
+from src.connect.services.facebook import FacebookConnect
 from src.connect.exceptions import CredentialsNotFound, SocialUserNotFound
+from src.connect.models import Connection
 
 class TwitterConnectTestCase(TestCase):
     def setUp(self):
@@ -95,6 +102,43 @@ class TwitterConnectTestCase(TestCase):
         with pytest.raises(SocialUserNotFound):
             connection = connect.connect(self.other_user)
         api_object.CreateFriendship.assert_not_called()
+
+    @patch('src.connect.services.twitter.twitter')
+    def test_connect_users(self, mocked_twitter):
+        api_object = Mock()
+        friend = Mock()
+        friends = [self.other_social_auth.uid]
+        api_object.GetFriendIDsPaged.return_value = (0, None, friends)
+        mocked_twitter.Api.return_value = api_object
+        service = TwitterConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.twitter.twitter')
+    def test_connect_users_with_paging_and_unexisting_user(self, mocked_twitter):
+        api_object = Mock()
+        friend_1 = Mock()
+        friend_2 = Mock()
+
+        first_friends = [self.other_social_auth.uid]
+        last_friends = ['invalid_id']
+        api_object.GetFriendIDsPaged.side_effect = [
+            (2, None, first_friends), (0, None, last_friends)
+        ]
+        mocked_twitter.Api.return_value = api_object
+        service = TwitterConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
 
 
 class InstagramConnectTestCase(TestCase):
@@ -188,7 +232,7 @@ class YoutubeConnectTestCase(TestCase):
         self.user_social_auth = mommy.make(
             'UserSocialAuth',
             provider='google-oauth2',
-            extra_data={'access_token': '123456'}
+            extra_data={'access_token': '123456', 'refresh_token': '654321'}
         )
         self.user = self.user_social_auth.user
 
@@ -206,7 +250,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_authenticate_calls_api_with_tokens(self, mocked_credentials, mocked_google):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_authenticate_calls_api_with_tokens(self, mocked_strategy, mocked_refresh, mocked_credentials, mocked_google):
         connect = YoutubeConnect(self.user)
         mocked_credentials.Credentials.assert_called_once_with(
                 token='123456',
@@ -230,7 +276,29 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_calls_create_subscription(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_authenticate_calls_refresh_if_token_expired(self, load_strategy, refresh, credentials, google):
+        self.user_social_auth.extra_data.update(
+            {'authtime': int(time.time()) - 360, 'expires': 60}
+        )
+        self.user_social_auth.save()
+        connect = YoutubeConnect(self.user)
+        credentials.Credentials.assert_called_once_with(
+                token='123456',
+                client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+        )
+        google.discovery.build.assert_called_once_with(
+            'youtube', 'v3', credentials=credentials.Credentials.return_value
+        )
+        refresh.assert_called_once_with(load_strategy.return_value)
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_calls_create_subscription(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -249,7 +317,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_user_social_auth_does_not_exist(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_user_social_auth_does_not_exist(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -262,7 +332,9 @@ class YoutubeConnectTestCase(TestCase):
 
     @patch('src.connect.services.youtube.googleapiclient')
     @patch('src.connect.services.youtube.google.oauth2.credentials')
-    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, mocked_credentials, mocked_client):
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, load_strategy, refresh, mocked_credentials, mocked_client):
         api_object = Mock()
         mocked_client.discovery.build.return_value = api_object
 
@@ -273,3 +345,167 @@ class YoutubeConnectTestCase(TestCase):
         with pytest.raises(SocialUserNotFound):
             connection = connect.connect(self.other_user)
         api_object.subscriptions().insert.assert_not_called()
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, load_strategy, refresh, mocked_credentials, mocked_client):
+        api_object = Mock()
+        mocked_client.discovery.build.return_value = api_object
+
+        self.other_social_auth.extra_data = {}
+        self.other_social_auth.save()
+
+        connect = YoutubeConnect(self.user)
+        with pytest.raises(SocialUserNotFound):
+            connection = connect.connect(self.other_user)
+        api_object.subscriptions().insert.assert_not_called()
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_users(self, mocked_strategy, mocked_refresh, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.return_value = {
+            'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#channel'}
+                }},
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#playlist'}
+                }},
+            ]
+        }
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_connect_users_with_paging_and_unexisting_user(self, load_strategy, refresh, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.side_effect = [
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#channel'}
+                }},
+            ],
+            'nextPageToken': 'next_page_token'},
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#channel'}
+                }},
+            ]},
+        ]
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'refresh_token')
+    @patch('src.connect.services.youtube.load_strategy')
+    def test_dont_connect_users_if_no_channel_ids(self, load_strategy, refresh, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.side_effect = [
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#playlist'}
+                }},
+            ],
+            'nextPageToken': 'next_page_token'},
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#channel'}
+                }},
+            ]},
+        ]
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        assert connections == []
+        assert 0 == Connection.objects.count()
+
+class FacebookConnectTestCase(TestCase):
+    def setUp(self):
+        self.user_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='facebook',
+            extra_data={'access_token': '123456'}
+        )
+        self.user = self.user_social_auth.user
+
+        self.other_social_auth = mommy.make(
+            'UserSocialAuth',
+            provider='facebook',
+            extra_data={'youtube_channel': 'UCTestYoutubeChannel'}
+        )
+        self.other_user = self.other_social_auth.user
+
+    @patch.object(GraphAPI, 'get_connections')
+    @patch.object(requests, 'get')
+    def test_connect_users(self, mocked_get, mocked_fb_connections):
+        mocked_fb_connections.return_value = {'data':
+            [{'id': self.other_social_auth.uid}]
+        }
+        service = FacebookConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch.object(GraphAPI, 'get_connections')
+    @patch.object(requests, 'get')
+    def test_connect_users_with_paging_and_unexisting_user(self, mocked_get, mocked_fb_connections):
+        mocked_fb_connections.return_value = {
+            'data': [{'id': self.other_social_auth.uid}],
+            'paging': {'next': 'http://fb.com/next'}
+        }
+        return_get = Mock()
+        return_get.json.return_value = {
+            'data': [{'id': 'other_id'}]
+        }
+        mocked_get.return_value = return_get
+        service = FacebookConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True

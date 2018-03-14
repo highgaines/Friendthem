@@ -20,6 +20,7 @@ class AuthErrorSerializer(serializers.ModelSerializer):
         model = AuthError
         fields = ('provider', 'message')
 
+
 class SocialAuthUsernameField(serializers.Field):
     def to_representation(self, obj):
         return obj.get('username')
@@ -44,6 +45,7 @@ class SocialProfileSerializer(serializers.ModelSerializer):
         validated_data['uid'] = validated_data['extra_data']['username']
         return UserSocialAuth.objects.create(**validated_data)
 
+
 class UserSerializer(serializers.ModelSerializer):
     client_id = serializers.CharField(write_only=True)
     client_secret = serializers.CharField(write_only=True)
@@ -53,6 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True, read_only=True)
+    last_location = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -61,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 'client_id', 'client_secret', 'grant_type',
             'picture', 'social_profiles', 'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email','ghost_mode',
-            'employer', 'age_range', 'bio', 'pictures',
+            'employer', 'age_range', 'bio', 'pictures', 'last_location',
             'notifications', 'email_is_private', 'phone_is_private',
         )
 
@@ -81,11 +84,15 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Application not found.')
         return data
 
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
+
     def create(self, validated_data):
-        user = User.objects.create(
-            email=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
+        password = validated_data.pop('password')
+        validated_data['email'] = validated_data.pop('username')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
         user.save()
         return user
 
@@ -117,7 +124,10 @@ class TokenSerializer(serializers.ModelSerializer):
         extra_data = obj.extra_data
         return extra_data.get('auth_time')
 
+
 class ProfileSerializer(serializers.ModelSerializer):
+    last_location = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -125,8 +135,12 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications',
             'employer', 'age_range', 'bio',
-            'email_is_private', 'phone_is_private',
+            'email_is_private', 'phone_is_private', 'last_location',
         )
+
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -140,6 +154,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class RetrieveUserSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     personal_email = serializers.SerializerMethodField()
+    last_location = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True)
 
@@ -151,6 +166,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
             'employer', 'age_range', 'bio',
+            'last_location',
         )
 
     def get_phone_number(self, obj):
@@ -161,6 +177,10 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     def get_personal_email(self, obj):
         if getattr(self.context['request'], 'user') == obj or not obj.email_is_private:
             return obj.personal_email
+
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
 
 class ConnectionPercentageMixin(object):
@@ -182,7 +202,7 @@ class ConnectionPercentageMixin(object):
                 )
             )
 
-        return round(percentage * 100)
+        return min(100, round(percentage * 100))
 
 
 class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
@@ -198,7 +218,7 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
             'picture', 'hobbies', 'social_profiles', 'pictures',
             'last_location', 'distance', 'connection_percentage',
             'employer', 'age_range', 'bio', 'hometown',
-            'phone_number', 'personal_email'
+            'phone_number', 'personal_email',
         )
 
     def get_distance(self, obj):

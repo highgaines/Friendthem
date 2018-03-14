@@ -1,11 +1,17 @@
+from facebook import GraphAPIError
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.gis.db.models import PointField
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
+
+from src.pictures.services import FacebookProfilePicture
+from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, *args, **kwargs):
@@ -86,3 +92,24 @@ class AuthError(models.Model):
     )
     provider = models.CharField(max_length=32)
     message = models.TextField()
+
+
+@receiver(post_save, sender=User, dispatch_uid='pull_profile_pictures')
+def pull_profile_pictures_from_facebook(sender, instance, **kwargs):
+    facebook_auths = instance.social_auth.filter(provider='facebook')
+    if instance.featured and facebook_auths and not instance.pictures.all():
+        try:
+            uid = facebook_auths[0].uid
+            service = FacebookProfilePicture(
+                access_token='{}|{}'.format(
+                    settings.SOCIAL_AUTH_FACEBOOK_KEY,
+                    settings.SOCIAL_AUTH_FACEBOOK_SECRET
+                )
+            )
+            pictures = service.get_pictures(uid=uid)[:6]
+            picture_objs = [
+                instance.pictures.create(url=picture['picture'])
+                for picture in pictures
+            ]
+        except (ProfilePicturesAlbumNotFound, GraphAPIError):
+            pass

@@ -185,7 +185,7 @@ class ConnectionPercentageMixin(object):
                 )
             )
 
-        return round(percentage * 100)
+        return min(100, round(percentage * 100))
 
 
 class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):

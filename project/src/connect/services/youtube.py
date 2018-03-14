@@ -66,8 +66,8 @@ class YoutubeConnect(DummyConnect):
             try:
                 next_page_token = channels_data['nextPageToken']
                 channels_data = self.api.subscriptions().list(
-                    part='snippet', mine=True, max_results=50,
-                    next_page_token=next_page_token
+                    part='snippet', mine=True, maxResults=50,
+                    nextPageToken=next_page_token
                 ).execute()
                 channels_ids += [
                     data['snippet']['resourceId']['channelId'] for data in

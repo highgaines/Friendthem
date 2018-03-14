@@ -143,6 +143,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class RetrieveUserSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     personal_email = serializers.SerializerMethodField()
+    last_location = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True)
 
@@ -154,6 +155,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
             'employer', 'age_range', 'bio',
+            'last_location',
         )
 
     def get_phone_number(self, obj):
@@ -164,6 +166,10 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     def get_personal_email(self, obj):
         if getattr(self.context['request'], 'user') == obj or not obj.email_is_private:
             return obj.personal_email
+
+    def get_last_location(self, obj):
+        if (not obj.ghost_mode) and obj.last_location:
+            return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
 
 class ConnectionPercentageMixin(object):
@@ -201,7 +207,7 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
             'picture', 'hobbies', 'social_profiles', 'pictures',
             'last_location', 'distance', 'connection_percentage',
             'employer', 'age_range', 'bio', 'hometown',
-            'phone_number', 'personal_email'
+            'phone_number', 'personal_email',
         )
 
     def get_distance(self, obj):

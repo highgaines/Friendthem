@@ -28,6 +28,7 @@ class YoutubeConnect(DummyConnect):
 
         credentials = google.oauth2.credentials.Credentials(
             token=social_auth.extra_data['access_token'],
+            refresh_token=social_auth.extra_data.get('refresh_token'),
             client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )

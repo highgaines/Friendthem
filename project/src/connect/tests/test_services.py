@@ -232,7 +232,7 @@ class YoutubeConnectTestCase(TestCase):
         self.user_social_auth = mommy.make(
             'UserSocialAuth',
             provider='google-oauth2',
-            extra_data={'access_token': '123456'}
+            extra_data={'access_token': '123456', 'refresh_token': '654321'}
         )
         self.user = self.user_social_auth.user
 
@@ -254,6 +254,7 @@ class YoutubeConnectTestCase(TestCase):
         connect = YoutubeConnect(self.user)
         mocked_credentials.Credentials.assert_called_once_with(
                 token='123456',
+                refresh_token='654321',
                 client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                 client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )
@@ -285,7 +286,8 @@ class YoutubeConnectTestCase(TestCase):
         credentials.Credentials.assert_called_once_with(
                 token='123456',
                 client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
-                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+                refresh_token='654321'
         )
         google.discovery.build.assert_called_once_with(
             'youtube', 'v3', credentials=credentials.Credentials.return_value

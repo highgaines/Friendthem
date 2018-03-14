@@ -338,6 +338,110 @@ class YoutubeConnectTestCase(TestCase):
             connection = connect.connect(self.other_user)
         api_object.subscriptions().insert.assert_not_called()
 
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    def test_connect_raises_error_if_other_user_dont_have_youtube_channel(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        mocked_client.discovery.build.return_value = api_object
+
+        self.other_social_auth.extra_data = {}
+        self.other_social_auth.save()
+
+        connect = YoutubeConnect(self.user)
+        with pytest.raises(SocialUserNotFound):
+            connection = connect.connect(self.other_user)
+        api_object.subscriptions().insert.assert_not_called()
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    def test_connect_users(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.return_value = {
+            'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#channel'}
+                }},
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#playlist'}
+                }},
+            ]
+        }
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    def test_connect_users_with_paging_and_unexisting_user(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.side_effect = [
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#channel'}
+                }},
+            ],
+            'nextPageToken': 'next_page_token'},
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#channel'}
+                }},
+            ]},
+        ]
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        connection = Connection.objects.first()
+        assert connections == [connection]
+        assert connection.user_1 == self.user
+        assert connection.user_2 == self.other_user
+        assert connection.confirmed is True
+
+    @patch('src.connect.services.youtube.googleapiclient')
+    @patch('src.connect.services.youtube.google.oauth2.credentials')
+    def test_dont_connect_users_if_no_channel_ids(self, mocked_credentials, mocked_client):
+        api_object = Mock()
+        subscriptions = Mock()
+        list_action = Mock()
+        list_action.execute.side_effect = [
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': self.other_social_auth.extra_data['youtube_channel'], 'kind': 'youtube#playlist'}
+                }},
+            ],
+            'nextPageToken': 'next_page_token'},
+            {'items': [
+                {'snippet': {
+                    'resourceId': {'channelId': 'UCaabbbccc', 'kind': 'youtube#channel'}
+                }},
+            ]},
+        ]
+        subscriptions.list.return_value = list_action
+        api_object.subscriptions.return_value = subscriptions
+        mocked_client.discovery.build.return_value = api_object
+
+        service = YoutubeConnect(self.user)
+        connections = service.connect_users()
+
+        assert connections == []
+        assert 0 == Connection.objects.count()
+
 class FacebookConnectTestCase(TestCase):
     def setUp(self):
         self.user_social_auth = mommy.make(

@@ -22,16 +22,14 @@ class FacebookProfilePicture(object):
 
         return facebook.GraphAPI(access_token)
 
-    def get_profile_picture_album(self, uid=None):
-        if not uid:
-            uid = 'me'
+    def get_profile_picture_album(self, uid='me'):
         response = self.api.get_connections(uid, 'albums', limit=1000)
         try:
             return [album for album in response['data'] if album['name'] == 'Profile Pictures'][0]
         except IndexError:
             raise ProfilePicturesAlbumNotFound('Could not find album with name equals to "Profile Pictures"')
 
-    def get_pictures(self, uid=None):
+    def get_pictures(self, uid='me'):
         album = self.get_profile_picture_album(uid)
         response = self.api.get_connections(album['id'], 'photos', fields='images', limit=200)
         return [

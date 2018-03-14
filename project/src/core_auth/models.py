@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+from src.pictures.services import FacebookProfilePicture
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, *args, **kwargs):
         """

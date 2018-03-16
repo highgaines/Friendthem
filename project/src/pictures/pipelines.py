@@ -7,7 +7,7 @@ def autoset_user_pictures(backend, user, *args, **kwargs):
             service = FacebookProfilePicture(user)
             pictures = service.get_pictures()[:6]
             picture_objs = [
-                user.pictures.create(url=picture['picture']) for picture in pictures
+                user.pictures.update_or_create(url=picture['picture']) for picture in pictures
             ]
             return {'pictures': picture_objs}
         except ProfilePicturesAlbumNotFound:

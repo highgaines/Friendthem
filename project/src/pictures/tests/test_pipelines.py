@@ -18,7 +18,7 @@ class AutosetUserPicturesTestCase(TestCase):
             {'id': 3, 'picture': 'http://example.com/3.jpg'},
             {'id': 4, 'picture': 'http://example.com/4.jpg'},
             {'id': 5, 'picture': 'http://example.com/5.jpg'},
-            {'id': 6, 'picture': 'http://example.com/5.jpg'},
+            {'id': 6, 'picture': 'http://example.com/6.jpg'},
         ]
         mocked_service_cls.return_value = service
         user = mommy.make(settings.AUTH_USER_MODEL)
@@ -57,7 +57,7 @@ class AutosetUserPicturesTestCase(TestCase):
             {'id': 3, 'picture': 'http://example.com/3.jpg'},
             {'id': 4, 'picture': 'http://example.com/4.jpg'},
             {'id': 5, 'picture': 'http://example.com/5.jpg'},
-            {'id': 6, 'picture': 'http://example.com/5.jpg'},
+            {'id': 6, 'picture': 'http://example.com/6.jpg'},
             {'id': 7, 'picture': 'http://example.com/7.jpg'},
         ]
         mocked_service_cls.return_value = service

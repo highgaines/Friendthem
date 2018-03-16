@@ -86,7 +86,7 @@ class PictureDeleteUpdateView(APITestCase):
         assert 200 == response.status_code
         self.picture.refresh_from_db()
         assert 'http://example.com/example.jpg' == self.picture.url
-        assert response.json() == [{'id': 27, 'url': 'http://example.com/example.jpg'}]
+        assert response.json() == [{'id': self.picture.id, 'url': 'http://example.com/example.jpg'}]
 
     def test_update_picture_ignore_6_pic_validation(self):
         data = {'url': 'http://example.com/example.jpg'}

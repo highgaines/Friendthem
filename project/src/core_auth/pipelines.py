@@ -1,5 +1,6 @@
 import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
+from social_core.exceptions import AuthCanceled
 
 def get_user(strategy, *args, **kwargs):
     user = kwargs.get('user', strategy.request.user)
@@ -89,8 +90,12 @@ def get_youtube_channel(strategy, backend, social, *args, **kwargs):
             'youtube', 'v3',
             credentials=credentials
         )
-        response = service.channels().list(mine=True, part='id').execute()
+        response = service.channels().list(mine=True, part='id,status').execute()
 
-        if response.get('items'):
+
+        if response.get('items') and response['items'][0]['status']['privacyStatus'] == 'public':
             social.set_extra_data({'youtube_channel': response['items'][0]['id']})
             social.save()
+        else:
+            social.delete()
+            raise AuthCanceled('Youtube channel is not available for this user!')

@@ -1,3 +1,4 @@
+import random, string
 import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
 
@@ -8,6 +9,26 @@ def get_user(strategy, *args, **kwargs):
     if user.is_anonymous:
         return
     return {'user': user}
+
+def create_user(strategy, details, backend, user=None, *args, **kwargs):
+    if user:
+        return {'is_new': False}
+
+    fields = dict((name, kwargs.get(name, details.get(name)))
+                  for name in backend.setting('USER_FIELDS', USER_FIELDS))
+    if not fields:
+        return
+
+    if not fields.get('email') and backend.name == 'facebook':
+        letters = string.ascii_lowercase + string.ascii_uppercase + string.disgits
+        prefix = ''.join(letters for _ in range(32))
+        email = f'{prefix}@facebook.com'
+        fields.update({'email': email})
+
+    return {
+        'is_new': True,
+        'user': strategy.create_user(**fields)
+    }
 
 def profile_data(response, details, backend, user, social, *args, **kwargs):
     social_profile(backend, response, details, user, social)

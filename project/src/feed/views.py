@@ -15,8 +15,6 @@ class FeedView(APIView):
         other_user = get_object_or_404(
             User, id=user_id
         )
-        data = []
-        errors = {}
 
         try:
             Service = getattr(services, '{}Feed'.format(provider.capitalize()))
@@ -25,8 +23,8 @@ class FeedView(APIView):
 
         try:
             service = Service(self.request.user)
-            data += service.get_feed(other_user)
-        except Exception as err:
+            data = service.get_feed(other_user)
+        except (SocialUserNotFound, CredentialsNotFound):
             return Response({'error', str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
         data = sorted(data, key=lambda x: x.get('created_time', 0), reverse=True)

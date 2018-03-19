@@ -4,6 +4,8 @@ from django.conf import settings
 
 from src.core_auth.exceptions import YoutubeChannelNotFound
 
+USER_FIELDS = ['username', 'email']
+
 def get_user(strategy, *args, **kwargs):
     user = kwargs.get('user', strategy.request.user)
     if user.is_anonymous:
@@ -16,14 +18,15 @@ def create_user(strategy, details, backend, user=None, *args, **kwargs):
 
     fields = dict((name, kwargs.get(name, details.get(name)))
                   for name in backend.setting('USER_FIELDS', USER_FIELDS))
-    if not fields:
-        return
 
     if not fields.get('email') and backend.name == 'facebook':
-        letters = string.ascii_lowercase + string.ascii_uppercase + string.disgits
-        prefix = ''.join(letters for _ in range(32))
+        letters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+        prefix = ''.join(random.choices(letters, k=32))
         email = f'{prefix}@facebook.com'
         fields.update({'email': email})
+
+    if not fields:
+        return
 
     return {
         'is_new': True,

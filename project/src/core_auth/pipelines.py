@@ -18,7 +18,6 @@ def create_user(strategy, details, backend, user=None, *args, **kwargs):
 
     fields = dict((name, kwargs.get(name, details.get(name)))
                   for name in backend.setting('USER_FIELDS', USER_FIELDS))
-    import ipdb; ipdb.set_trace()
 
     if not fields.get('email') and backend.name == 'facebook':
         letters = string.ascii_lowercase + string.ascii_uppercase + string.digits

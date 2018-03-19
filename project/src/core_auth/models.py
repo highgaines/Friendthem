@@ -24,6 +24,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
+            **kwargs
         )
 
         user.set_password(password)
@@ -73,6 +74,7 @@ class User(AbstractUser):
     featured = models.BooleanField(default=False)
     phone_is_private = models.BooleanField(default=False)
     email_is_private = models.BooleanField(default=False)
+    is_random_email = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -81,7 +83,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     def save(self, *args, **kwargs):
-        if not self.personal_email:
+        if not self.personal_email and not self.is_random_email:
             self.personal_email = self.email
         return super(User, self).save(*args, **kwargs)
 

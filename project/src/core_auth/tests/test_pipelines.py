@@ -4,10 +4,10 @@ from model_mommy import mommy
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from social_core.exceptions import AuthCanceled
 from social_django.models import UserSocialAuth
 
 from src.core_auth.pipelines import profile_data, get_user, get_youtube_channel
+from src.core_auth.exceptions import YoutubeChannelNotFound
 
 User = get_user_model()
 
@@ -257,7 +257,7 @@ class GetYoutubeChannelTestCase(TestCase):
         }
 
         api_object.channels().list.return_value = list_action
-        with pytest.raises(AuthCanceled):
+        with pytest.raises(YoutubeChannelNotFound):
             get_youtube_channel(self.strategy, self.backend, self.social)
 
             api_object.channels().list.assert_called_once_with(

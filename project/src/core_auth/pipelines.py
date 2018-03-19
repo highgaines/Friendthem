@@ -1,6 +1,7 @@
 import googleapiclient.discovery, google.oauth2.credentials
 from django.conf import settings
-from social_core.exceptions import AuthCanceled
+
+from src.core_auth.exceptions import YoutubeChannelNotFound
 
 def get_user(strategy, *args, **kwargs):
     user = kwargs.get('user', strategy.request.user)
@@ -98,4 +99,4 @@ def get_youtube_channel(strategy, backend, social, *args, **kwargs):
             social.save()
         else:
             social.delete()
-            raise AuthCanceled('Youtube channel is not available for this user!')
+            raise YoutubeChannelNotFound()

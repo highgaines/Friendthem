@@ -458,6 +458,7 @@ class YoutubeConnectTestCase(TestCase):
         assert connections == []
         assert 0 == Connection.objects.count()
 
+
 class FacebookConnectTestCase(TestCase):
     def setUp(self):
         self.user_social_auth = mommy.make(

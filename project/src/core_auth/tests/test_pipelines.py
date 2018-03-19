@@ -58,14 +58,14 @@ class CreateUserTestCase(TestCase):
     @patch('src.core_auth.pipelines.string')
     def test_create_user_with_random_email_for_facebook(self, string, random):
         backend = Mock()
-        bakcend.name == 'facebook'
+        backend.name = 'facebook'
         backend.setting.return_value = ['email']
         strategy = Mock()
-        details = Mock()
-        kwargs = {}
+        details = {}
+        kwargs = {'email': ''}
         create_user(strategy, details, backend, **kwargs)
 
-        assert random.choices.assert_called_once_with(string.ascii_lowercase + string.ascii_uppercase + string.digits, k=32)
+        random.choices.assert_called_once_with(string.ascii_lowercase + string.ascii_uppercase + string.digits, k=32)
 
         assert 1 == strategy.create_user.call_count
 

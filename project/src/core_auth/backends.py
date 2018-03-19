@@ -17,6 +17,7 @@ from social_core.utils import url_add_parameters, parse_qs
 from social_core.exceptions import AuthTokenError, AuthCanceled, AuthAlreadyAssociated
 
 from src.core_auth.models import AuthError
+from src.core_auth.exceptions import YoutubeChannelNotFound
 
 User = get_user_model()
 
@@ -100,9 +101,9 @@ class RESTStateOAuth2Mixin(object):
         kwargs['user'] = User.objects.get(id=self.session['_user_id'])
         try:
             return super(RESTStateOAuth2Mixin, self).auth_complete(*args, **kwargs)
-        except (AuthCanceled, AuthAlreadyAssociated) as err:
+        except (AuthCanceled, AuthAlreadyAssociated, YoutubeChannelNotFound) as err:
             AuthError.objects.create(
-                provider=self.name, user=kwargs['user'], message=err
+                provider=self.name, user=kwargs['user'], message=str(err)
             )
             return redirect(reverse('user:redirect_to_app'))
 

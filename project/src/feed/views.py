@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from src.feed import services
+from src.connect.exceptions import SocialUserNotFound, CredentialsNotFound
 
 User = get_user_model()
 

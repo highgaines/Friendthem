@@ -54,3 +54,18 @@ class FeedViewTestCase(APITestCase):
         self.url = reverse('feed:feed', kwargs={'user_id': self.other_user.id, 'provider': 'invalid_provider'})
         response = self.client.get(self.url)
         assert 404 == response.status_code
+
+    @patch('src.feed.views.services')
+    def test_error_for_no_data_with_no_connection(self, mocked_services):
+        facebook = Mock()
+        facebook.get_feed.return_value = []
+        mocked_services.FacebookFeed.return_value = facebook
+
+        response = self.client.get(self.url)
+        assert 400 == response.status_code
+        content = response.json()
+
+        mocked_services.FacebookFeed.assert_called_with(self.user)
+        facebook.get_feed.assert_called_with(self.other_user)
+
+        assert content['error'] == f'User {self.other_user.id} has private feed and is not connected.'

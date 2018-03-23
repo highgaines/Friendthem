@@ -15,7 +15,7 @@ from oauth2_provider.views.mixins import OAuthLibMixin
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 
 from src.core_auth.serializers import (UserSerializer, TokenSerializer,
@@ -88,7 +88,7 @@ class UpdateProfileView(UpdateAPIView):
         return self.request.user
 
 
-class CreateSocialProfileView(CreateAPIView):
+class SocialProfileViewSet(ModelViewSet):
     serializer_class = SocialProfileSerializer
     permission_classes = [IsAuthenticated]
 
@@ -155,7 +155,7 @@ tokens_list = TokensViewSet.as_view({'get': 'list'})
 tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
 errors_list = AuthErrorView.as_view()
 update_profile = UpdateProfileView.as_view()
-social_profile = CreateSocialProfileView.as_view()
+social_profile_create = SocialProfileViewSet.as_view({'post': 'create'})
 update_location = UpdateLocationView.as_view()
 nearby_users = NearbyUsersView.as_view()
 change_password = ChangePasswordView.as_view()

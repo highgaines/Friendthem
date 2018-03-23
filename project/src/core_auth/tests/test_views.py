@@ -336,11 +336,11 @@ class UpdateProfileViewTests(APITestCase):
         assert data['occupation'] == user.occupation
 
 
-class CreateSocialProfileView(APITestCase):
+class CreateSocialProfileViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
         self.client.force_authenticate(self.user)
-        self.url = reverse('user:social_profile')
+        self.url = reverse('user:social_profile_create')
 
     def test_login_required(self):
         self.client.logout()
@@ -355,6 +355,65 @@ class CreateSocialProfileView(APITestCase):
         social_profile = self.user.social_auth.get(provider='snapchat')
         assert 'testuser' == social_profile.extra_data['username']
         assert 'testuser' == social_profile.uid
+
+    def test_raises_400_if_social_auth_with_uid_already_exists(self):
+        social_auth = mommy.make('UserSocialAuth', provider='snapchat', uid='test_user')
+        data = {'provider': 'snapchat', 'username': 'test_user'}
+
+        response = self.client.post(self.url, data=data)
+
+        assert 400 == response.status_code
+        assert {'non_field_errors': ['User test_user already exists in snapchat']} == response.json()
+
+
+class UpdateSocialProfileViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.social_auth = mommy.make('UserSocialAuth', user=self.user, provider='snapchat')
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:social_profile_update_delete', kwargs={'provider': 'snapchat'})
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.put(self.url)
+        assert 401 == response.status_code
+
+    def test_update_social_profile_for_user(self):
+        data = {'username': 'testuser'}
+        response = self.client.put(self.url, data=data)
+
+        assert 200 == response.status_code
+        social_profile = self.user.social_auth.get(provider='snapchat')
+        assert 'testuser' == social_profile.extra_data['username']
+        assert 'testuser' == social_profile.uid
+
+    def test_raises_400_if_social_auth_with_uid_already_exists(self):
+        social_auth = mommy.make('UserSocialAuth', provider='snapchat', uid='test_user')
+        data = {'username': 'test_user'}
+
+        response = self.client.put(self.url, data=data)
+
+        assert 400 == response.status_code
+        assert {'non_field_errors': ['User test_user already exists in snapchat']} == response.json()
+
+
+class DeleteSocialProfileViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.social_auth = mommy.make('UserSocialAuth', user=self.user, provider='snapchat')
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:social_profile_update_delete', kwargs={'provider': 'snapchat'})
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.delete(self.url)
+        assert 401 == response.status_code
+
+    def test_delete_social_profile_for_provider(self):
+        response = self.client.delete(self.url)
+
+        assert 204 == response.status_code
+        social_profile = self.user.social_auth.filter(provider='snapchat').exists() is False
 
 
 class UpdateLocationTests(APITestCase):

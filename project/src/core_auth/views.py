@@ -92,6 +92,12 @@ class SocialProfileViewSet(ModelViewSet):
     serializer_class = SocialProfileSerializer
     permission_classes = [IsAuthenticated]
 
+    lookup_url_kwarg = 'provider'
+    lookup_field = 'provider'
+
+    def get_queryset(self):
+        return self.request.user.social_auth.all()
+
 
 class UpdateLocationView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -141,7 +147,6 @@ class ChangePasswordView(APIView):
         return Response(serializer.data)
 
 
-
 def redirect_user_to_app(request):
     location = 'FriendThem://'
     response = HttpResponse('', status=302)
@@ -156,6 +161,7 @@ tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
 errors_list = AuthErrorView.as_view()
 update_profile = UpdateProfileView.as_view()
 social_profile_create = SocialProfileViewSet.as_view({'post': 'create'})
+social_profile_update_delete = SocialProfileViewSet.as_view({'put': 'update', 'delete': 'destroy'})
 update_location = UpdateLocationView.as_view()
 nearby_users = NearbyUsersView.as_view()
 change_password = ChangePasswordView.as_view()

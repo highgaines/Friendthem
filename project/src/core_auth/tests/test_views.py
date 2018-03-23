@@ -336,11 +336,11 @@ class UpdateProfileViewTests(APITestCase):
         assert data['occupation'] == user.occupation
 
 
-class CreateSocialProfileView(APITestCase):
+class CreateSocialProfileViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
         self.client.force_authenticate(self.user)
-        self.url = reverse('user:social_profile')
+        self.url = reverse('user:social_profile_create')
 
     def test_login_required(self):
         self.client.logout()

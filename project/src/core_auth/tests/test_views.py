@@ -363,7 +363,16 @@ class CreateSocialProfileViewTestCase(APITestCase):
         response = self.client.post(self.url, data=data)
 
         assert 400 == response.status_code
-        assert {'non_field_errors': ['User test_user already exists in snapchat']} == response.json()
+        assert {'non_field_errors': ['User "test_user" already exists in "snapchat".']} == response.json()
+
+    def test_raises_400_if_social_auth_for_user_already_exists(self):
+        social_auth = mommy.make('UserSocialAuth', provider='snapchat', user=self.user)
+        data = {'provider': 'snapchat', 'username': 'test_user'}
+
+        response = self.client.post(self.url, data=data)
+
+        assert 400 == response.status_code
+        assert {'non_field_errors': ['Social Profile for this user already exists for provider "snapchat".']} == response.json()
 
 
 class UpdateSocialProfileViewTestCase(APITestCase):
@@ -394,7 +403,7 @@ class UpdateSocialProfileViewTestCase(APITestCase):
         response = self.client.put(self.url, data=data)
 
         assert 400 == response.status_code
-        assert {'non_field_errors': ['User test_user already exists in snapchat']} == response.json()
+        assert {'non_field_errors': ['User "test_user" already exists in "snapchat".']} == response.json()
 
 
 class DeleteSocialProfileViewTestCase(APITestCase):

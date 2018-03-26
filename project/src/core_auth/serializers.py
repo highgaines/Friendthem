@@ -47,6 +47,7 @@ class SocialProfileSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
+        request = self.context['request']
         username = data['extra_data']['username']
         provider = data.get('provider') or self.instance.provider
         already_exists = UserSocialAuth.objects.filter(
@@ -54,8 +55,18 @@ class SocialProfileSerializer(serializers.ModelSerializer):
         ).exists()
         if already_exists:
             raise serializers.ValidationError(
-                'User {} already exists in {}'.format(username, provider)
+                'User "{}" already exists in "{}".'.format(username, provider)
             )
+
+        if request.method == 'POST':
+            user = data['user']
+            already_exists = user.social_auth.filter(provider=provider).exists()
+            if already_exists:
+                raise serializers.ValidationError(
+                    'Social Profile for this user already exists for provider "{}".'.format(
+                        provider
+                    )
+                )
 
         return data
 

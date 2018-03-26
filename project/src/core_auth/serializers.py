@@ -33,10 +33,42 @@ class SocialProfileSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     username = SocialAuthUsernameField(source='extra_data')
     uid = serializers.CharField(read_only=True)
+    provider = serializers.CharField(required=False)
 
     class Meta:
         model = UserSocialAuth
         fields = ('user', 'provider', 'username', 'uid')
+
+    def validate_provider(self, value):
+        request = self.context['request']
+        if request.method == 'POST' and not value:
+            raise serializers.ValidationError('This field is required.')
+
+        return value
+
+    def validate(self, data):
+        request = self.context['request']
+        username = data['extra_data']['username']
+        provider = data.get('provider') or self.instance.provider
+        already_exists = UserSocialAuth.objects.filter(
+            uid=username, provider=provider
+        ).exists()
+        if already_exists:
+            raise serializers.ValidationError(
+                'User "{}" already exists in "{}".'.format(username, provider)
+            )
+
+        if request.method == 'POST':
+            user = data['user']
+            already_exists = user.social_auth.filter(provider=provider).exists()
+            if already_exists:
+                raise serializers.ValidationError(
+                    'Social Profile for this user already exists for provider "{}".'.format(
+                        provider
+                    )
+                )
+
+        return data
 
     def get_username(self, obj):
         return obj.extra_data.get('username')
@@ -44,6 +76,13 @@ class SocialProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['uid'] = validated_data['extra_data']['username']
         return UserSocialAuth.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        username = validated_data['extra_data']['username']
+        instance.set_extra_data({'username': username})
+        instance.uid = username
+        instance.save()
+        return instance
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -66,6 +105,7 @@ class UserSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email','ghost_mode',
             'employer', 'age_range', 'bio', 'pictures', 'last_location',
             'notifications', 'email_is_private', 'phone_is_private',
+            'is_random_email',
         )
 
     def validate_username(self, value):

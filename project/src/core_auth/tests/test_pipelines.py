@@ -1,10 +1,13 @@
-from unittest.mock import Mock
+import pytest
+from unittest.mock import Mock, patch
 from model_mommy import mommy
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from social_django.models import UserSocialAuth
 
-from src.core_auth.pipelines import profile_data, get_user
+from src.core_auth.pipelines import profile_data, get_user, create_user, get_youtube_channel
+from src.core_auth.exceptions import YoutubeChannelNotFound
 
 User = get_user_model()
 
@@ -40,6 +43,31 @@ class GetUserTestCase(TestCase):
 
         assert response is None
 
+class CreateUserTestCase(TestCase):
+    def test_create_user_with_email(self):
+        backend = Mock()
+        backend.setting.return_value = ['email']
+        strategy = Mock()
+        details = Mock()
+        kwargs = {'email': 'test@example.com'}
+        create_user(strategy, details, backend, **kwargs)
+
+        strategy.create_user.assert_called_once_with(**kwargs)
+
+    @patch('src.core_auth.pipelines.random')
+    @patch('src.core_auth.pipelines.string')
+    def test_create_user_with_random_email_for_facebook(self, string, random):
+        backend = Mock()
+        backend.name = 'facebook'
+        backend.setting.return_value = ['email']
+        strategy = Mock()
+        details = {}
+        kwargs = {'email': ''}
+        create_user(strategy, details, backend, **kwargs)
+
+        random.choices.assert_called_once_with(string.ascii_lowercase + string.ascii_uppercase + string.digits, k=32)
+
+        assert 1 == strategy.create_user.call_count
 
 
 class ProfileDataTestCase(TestCase):
@@ -189,3 +217,78 @@ class ProfileDataTestCase(TestCase):
         self.user.refresh_from_db()
 
         assert self.user.picture == 'http://test.com/picture.png'
+
+
+class GetYoutubeChannelTestCase(TestCase):
+    def setUp(self):
+        self.backend = Mock()
+        self.strategy = Mock()
+        self.backend.name = 'google-oauth2'
+        self.social = mommy.make(UserSocialAuth)
+
+    @patch('src.core_auth.pipelines.googleapiclient')
+    @patch('src.core_auth.pipelines.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'get_access_token')
+    def test_get_youtube_channel_if_it_is_public(self, refresh_token, mocked_credentials, mocked_client):
+        api_object = Mock()
+        list_action = Mock()
+        mocked_client.discovery.build.return_value = api_object
+        list_action.execute.return_value = {
+            'kind': 'youtube#channelListResponse',
+            'etag': 'hshsahskdasd',
+            'pageInfo': {'totalResults': 1, 'resultsPerPage': 1},
+            'items': [
+                {
+                    'kind': 'youtube#channel',
+                    'etag': 'djaosidjaoisdj',
+                    'id': 'UCYoutubeChannel',
+                    'status': {
+                        'privacyStatus': 'public', 'isLinked': True, 'longUploadsStatus': 'allowed'
+                    }
+                }
+            ]
+        }
+
+        api_object.channels().list.return_value = list_action
+
+        get_youtube_channel(self.strategy, self.backend, self.social)
+
+        api_object.channels().list.assert_called_once_with(
+            mine=True, part='id,status'
+        )
+
+        self.social.refresh_from_db()
+        assert self.social.extra_data['youtube_channel'] == 'UCYoutubeChannel'
+
+    @patch('src.core_auth.pipelines.googleapiclient')
+    @patch('src.core_auth.pipelines.google.oauth2.credentials')
+    @patch.object(UserSocialAuth, 'get_access_token')
+    def test_get_youtube_channel_raises_errors_if_not_public(self, refresh_token, mocked_credentials, mocked_client):
+        api_object = Mock()
+        list_action = Mock()
+        mocked_client.discovery.build.return_value = api_object
+        list_action.execute.return_value = {
+            'kind': 'youtube#channelListResponse',
+            'etag': 'hshsahskdasd',
+            'pageInfo': {'totalResults': 1, 'resultsPerPage': 1},
+            'items': [
+                {
+                    'kind': 'youtube#channel',
+                    'etag': 'djaosidjaoisdj',
+                    'id': 'UCYoutubeChannel',
+                    'status': {
+                        'privacyStatus': 'private', 'isLinked': True, 'longUploadsStatus': 'allowed'
+                    }
+                }
+            ]
+        }
+
+        api_object.channels().list.return_value = list_action
+        with pytest.raises(YoutubeChannelNotFound):
+            get_youtube_channel(self.strategy, self.backend, self.social)
+
+            api_object.channels().list.assert_called_once_with(
+                mine=True, part='id,status'
+            )
+
+        assert 0 == UserSocialAuth.objects.count()

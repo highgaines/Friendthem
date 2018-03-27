@@ -88,9 +88,7 @@ def profile_picture(backend, response, user):
         return
 
     if backend.name == 'facebook':
-        picture_url = 'https://graph.facebook.com/{}/picture?type=large'.format(
-            response.get('id')
-        )
+        picture_url = response.get('picture', {}).get('data', {}).get('url')
     elif backend.name == 'twitter':
         picture_url = response.get('profile_image_url', '').replace('_normal', '')
     elif backend.name == 'google-oauth2':

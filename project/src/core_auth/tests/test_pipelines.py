@@ -96,6 +96,14 @@ class ProfileDataTestCase(TestCase):
     def test_profile_data_for_facebook_user(self):
         self.response['name'] = 'test_user'
         self.response['id'] = '1'
+        self.response['picture'] = {
+            "data": {
+                "height": 600,
+                "is_silhouette": False,
+                "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B",
+                "width": 600
+            }
+        }
         self.backend.name = 'facebook'
 
         pipeline = profile_data(
@@ -107,7 +115,7 @@ class ProfileDataTestCase(TestCase):
         self.user.refresh_from_db()
         self.social.refresh_from_db()
 
-        assert self.user.picture == 'https://graph.facebook.com/1/picture?type=large'
+        assert self.user.picture == "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B"
         assert 'test_user' == self.social.extra_data.get('username')
 
     def test_complete_profile_data_for_facebook_user(self):
@@ -134,7 +142,15 @@ class ProfileDataTestCase(TestCase):
                     'employer': {'id': 2, 'name': 'Test None Employer'},
                     'position': {'id': 4, 'name': 'Test None Occupation'},
                 },
-            ]
+            ],
+            'picture': {
+                "data": {
+                    "height": 600,
+                    "is_silhouette": False,
+                    "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B",
+                    "width": 600
+                }
+            }
         }
         self.backend.name = 'facebook'
 
@@ -151,7 +167,7 @@ class ProfileDataTestCase(TestCase):
         assert self.user.age_range == '18 - 39'
         assert self.user.employer == 'Test Employer'
         assert self.user.occupation == 'Test Occupation'
-        assert self.user.picture == 'https://graph.facebook.com/1/picture?type=large'
+        assert self.user.picture == 'https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B'
         assert 'Test User' == self.social.extra_data.get('username')
 
     def test_profile_data_for_linkedin_user(self):

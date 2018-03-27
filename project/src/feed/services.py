@@ -77,10 +77,12 @@ class FacebookFeed(object):
     def format_data(self, item):
         return {
             'img_url': self.get_hires_picture(item),
-            'num_likes': item['likes']['summary']['total_count'],
+            'num_likes': item.get('likes',{}).get('summary', {}).get(
+                'total_count', 0
+            ),
             'description': item.get('name') or item.get('message'),
             'date_posted': int(maya.parse(item['created_time']).epoch),
-            'type': item['status_type'],
+            'type': item.get('status_type'),
             'provider': 'facebook',
         }
 

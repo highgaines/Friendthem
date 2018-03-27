@@ -109,14 +109,6 @@ class FacebookFeedTestCase(APITestCase):
             "status_type": "shared_story",
             "message": "Test message",
             "id": "1774734319268445_1831679343543942",
-            "likes": {
-                "data": [],
-                "summary": {
-                    "total_count": 0,
-                    "can_like": True,
-                    "has_liked": False
-                }
-            },
             "attachments": {
                 "data": [{
                     "description": "“https://t.co/ZO1ZwFpCXu”",

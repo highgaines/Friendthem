@@ -184,7 +184,7 @@ SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')
 SOCIAL_AUTH_FACEBOOK_SECRET = config('FACEBOOK_SECRET')
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
-    'fields': 'id,email,name,hometown,work,age_range,about'
+    'fields': 'id,email,name,hometown,work,age_range,about,picture.height(2048)'
 }
 
 

@@ -236,3 +236,4 @@ INSTALLED_APPS += ('raven.contrib.django.raven_compat', )
 
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
 AWS_SECRET_KEY = config('AWS_SECRET_KEY')
+AWS_S3_BUCKET_KEY = config('AWS_S3_BUCKET_KEY')

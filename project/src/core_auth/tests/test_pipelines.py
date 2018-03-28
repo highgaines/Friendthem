@@ -43,6 +43,7 @@ class GetUserTestCase(TestCase):
 
         assert response is None
 
+
 class CreateUserTestCase(TestCase):
     def test_create_user_with_email(self):
         backend = Mock()
@@ -73,7 +74,9 @@ class CreateUserTestCase(TestCase):
 class ProfileDataTestCase(TestCase):
     def setUp(self):
         self.user = mommy.make(User)
-        self.social = mommy.make('UserSocialAuth')
+        self.social = mommy.make(
+            'UserSocialAuth', extra_data={'access_token': 'access_token'}
+        )
         self.response = {}
         self.details = {}
         self.backend = Mock()
@@ -93,17 +96,15 @@ class ProfileDataTestCase(TestCase):
         assert self.user.picture == 'https://test.com/test.png'
         assert 'test_user' == self.social.extra_data.get('username')
 
-    def test_profile_data_for_facebook_user(self):
+    @patch('src.core_auth.pipelines.boto.connect_s3')
+    @patch('src.core_auth.pipelines.Key')
+    @patch('src.core_auth.pipelines.facebook')
+    def test_profile_data_for_facebook_user(self, mocked_facebook, mocked_s3_key, mocked_s3):
+        key = Mock()
+        key.generate_url.return_value = 'https://example.com/image.png'
+        mocked_s3_key.return_value = key
         self.response['name'] = 'test_user'
         self.response['id'] = '1'
-        self.response['picture'] = {
-            "data": {
-                "height": 600,
-                "is_silhouette": False,
-                "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B",
-                "width": 600
-            }
-        }
         self.backend.name = 'facebook'
 
         pipeline = profile_data(
@@ -115,10 +116,16 @@ class ProfileDataTestCase(TestCase):
         self.user.refresh_from_db()
         self.social.refresh_from_db()
 
-        assert self.user.picture == "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B"
+        assert self.user.picture == "https://example.com/image.png"
         assert 'test_user' == self.social.extra_data.get('username')
 
-    def test_complete_profile_data_for_facebook_user(self):
+    @patch('src.core_auth.pipelines.boto.connect_s3')
+    @patch('src.core_auth.pipelines.Key')
+    @patch('src.core_auth.pipelines.facebook')
+    def test_complete_profile_data_for_facebook_user(self, mocked_facebook, mocked_s3_key, mocked_s3):
+        key = Mock()
+        key.generate_url.return_value = 'https://example.com/image.png'
+        mocked_s3_key.return_value = key
         self.response = {
             'name': 'Test User',
             'id': '1',
@@ -143,14 +150,6 @@ class ProfileDataTestCase(TestCase):
                     'position': {'id': 4, 'name': 'Test None Occupation'},
                 },
             ],
-            'picture': {
-                "data": {
-                    "height": 600,
-                    "is_silhouette": False,
-                    "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B",
-                    "width": 600
-                }
-            }
         }
         self.backend.name = 'facebook'
 
@@ -167,7 +166,7 @@ class ProfileDataTestCase(TestCase):
         assert self.user.age_range == '18 - 39'
         assert self.user.employer == 'Test Employer'
         assert self.user.occupation == 'Test Occupation'
-        assert self.user.picture == 'https://scontent.xx.fbcdn.net/v/t1.0-1/10253175_999148450130373_3060558760695600301_n.jpg?_nc_cat=0&oh=804d8d3762ddf226949ec71f1704c5ef&oe=5B33348B'
+        assert self.user.picture == "https://example.com/image.png"
         assert 'Test User' == self.social.extra_data.get('username')
 
     def test_profile_data_for_linkedin_user(self):

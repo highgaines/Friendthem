@@ -38,7 +38,7 @@ class SocialProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserSocialAuth
-        fields = ('user', 'provider', 'username', 'uid')
+        fields = ('user', 'provider', 'username', 'uid', 'youtube_channel')
 
     def get_youtube_channel(self, obj):
         return obj.extra_data.get('youtube_channel')

@@ -23,3 +23,4 @@ Unipath==1.1
 whitenoise==3.3.1
 raven==6.6.0
 google-auth==1.4.1
+boto==2.48.0

@@ -26,7 +26,7 @@ class FeedView(APIView):
         try:
             service = Service(self.request.user)
             data = service.get_feed(other_user)
-        except (SocialUserNotFound, CredentialsNotFound):
+        except (SocialUserNotFound, CredentialsNotFound) as err:
             return Response({'error', str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
         if not data:

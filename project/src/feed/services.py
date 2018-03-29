@@ -29,8 +29,7 @@ class InstagramFeed(object):
             params={'access_token': self.access_token}
         )
         content = response.json()
-
-        return [self.format_data(d) for d in content['data']]
+        return [self.format_data(d) for d in content.get('data', [])]
 
     @staticmethod
     def format_data(item):

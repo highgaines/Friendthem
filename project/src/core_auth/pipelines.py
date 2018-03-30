@@ -106,10 +106,11 @@ def profile_picture(backend, response, user, social):
             key = Key(bucket)
             picture_url = get_picture_s3_url(social, user, key)
         except Exception as err:
-            logging.getLogger(__name__)
+            logger = logging.getLogger(__name__)
             logger.error(
-                f'Could not save Facebook profile picture on s3 for user {user}. - {err}'
+                f'Could not save Facebook profile pHiddenFieldicture on s3 for user {user}. - {err}'
             )
+            picture_url = None
     elif backend.name == 'twitter':
         picture_url = response.get('profile_image_url', '').replace('_normal', '')
     elif backend.name == 'google-oauth2':

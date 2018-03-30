@@ -108,7 +108,7 @@ def profile_picture(backend, response, user, social):
         except Exception as err:
             logger = logging.getLogger(__name__)
             logger.error(
-                f'Could not save Facebook profile pHiddenFieldicture on s3 for user {user}. - {err}'
+                f'Could not save Facebook profile picture on s3 for user {user}. - {err}'
             )
             picture_url = None
     elif backend.name == 'twitter':

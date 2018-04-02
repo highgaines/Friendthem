@@ -158,6 +158,10 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600 * 24 * 365,
+}
+
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
 SOCIAL_AUTH_USER_FIELDS = ['email',]
 

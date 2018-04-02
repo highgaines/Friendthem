@@ -65,6 +65,7 @@ class User(AbstractUser):
     # Settings
     ghost_mode = models.BooleanField(default=False)
     notifications = models.BooleanField(default=True)
+    tutorial_complete = models.BooleanField(default=False)
 
     last_location = PointField(
         geography=True, blank=True, null=True,

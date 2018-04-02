@@ -109,7 +109,7 @@ class UserSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email','ghost_mode',
             'employer', 'age_range', 'bio', 'pictures', 'last_location',
             'notifications', 'email_is_private', 'phone_is_private',
-            'is_random_email',
+            'is_random_email', 'tutorial_complete'
         )
 
     def validate_username(self, value):
@@ -178,7 +178,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications',
-            'employer', 'age_range', 'bio',
+            'employer', 'age_range', 'bio', 'tutorial_complete',
             'email_is_private', 'phone_is_private', 'last_location',
         )
 

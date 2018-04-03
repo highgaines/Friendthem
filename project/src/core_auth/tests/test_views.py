@@ -335,6 +335,57 @@ class UpdateProfileViewTests(APITestCase):
         assert data['hometown'] == user.hometown
         assert data['occupation'] == user.occupation
 
+class TutorialViewTests(APITestCase):
+    def setUp(self):
+        self.user = mommy.make(User)
+        self.client.force_authenticate(self.user)
+        self.url = reverse('user:tutorial')
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.put(self.url)
+        assert 401 == response.status_code
+
+    def test_update_tutorial_settings(self):
+        data = {
+            'invite_tutorial': True,
+            'connection_tutorial': False,
+            'tutorial_complete': False,
+        }
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert data['invite_tutorial'] == user.invite_tutorial is True
+        assert data['connection_tutorial'] == user.connection_tutorial is False
+        assert data['tutorial_complete'] == user.tutorial_complete is False
+
+    def test_update_overrides_old_profile(self):
+        self.user.connection_tutorial = True
+        self.user.save()
+        data = {
+            'invite_tutorial': True,
+            'connection_tutorial': False,
+            'tutorial_complete': False,
+        }
+        response = self.client.put(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert data['invite_tutorial'] == user.invite_tutorial is True
+        assert data['connection_tutorial'] == user.connection_tutorial is False
+        assert data['tutorial_complete'] == user.tutorial_complete is False
+
+    def test_patch_updates_only_present_fields(self):
+        self.user.connection_tutorial = True
+        self.user.save()
+        data = {
+            'connection_tutorial': False,
+        }
+        response = self.client.patch(self.url, data=data)
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert user.invite_tutorial is False
+        assert data['connection_tutorial'] == user.connection_tutorial is False
+        assert user.tutorial_complete is False
+
 
 class CreateSocialProfileViewTestCase(APITestCase):
     def setUp(self):

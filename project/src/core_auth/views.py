@@ -1,12 +1,11 @@
-import json
 from copy import copy
+import json
 
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import D
+from django.http import HttpResponse
 
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
@@ -15,13 +14,14 @@ from oauth2_provider.views.mixins import OAuthLibMixin
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
-from src.core_auth.serializers import (UserSerializer, TokenSerializer,
-                                       ProfileSerializer, LocationSerializer,
-                                       NearbyUsersSerializer, SocialProfileSerializer,
-                                       AuthErrorSerializer, ChangePasswordSerializer)
+from src.core_auth.serializers import (AuthErrorSerializer, ChangePasswordSerializer,
+                                       LocationSerializer, NearbyUsersSerializer,
+                                       ProfileSerializer, SocialProfileSerializer,
+                                       TutorialSerializer, TokenSerializer,
+                                       UserSerializer)
 
 
 User = get_user_model()
@@ -83,6 +83,14 @@ class TokensViewSet(ModelViewSet):
 class UpdateProfileView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
+class UpdateTutorialSettingsView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TutorialSerializer
 
     def get_object(self):
         return self.request.user
@@ -154,14 +162,15 @@ def redirect_user_to_app(request):
 
     return response
 
-register_user = RegisterUserView.as_view()
-user_details = UserDetailView.as_view()
-tokens_list = TokensViewSet.as_view({'get': 'list'})
-tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
+change_password = ChangePasswordView.as_view()
 errors_list = AuthErrorView.as_view()
-update_profile = UpdateProfileView.as_view()
+location_update = UpdateLocationView.as_view()
+nearby_users = NearbyUsersView.as_view()
+profile_update = UpdateProfileView.as_view()
+register_user = RegisterUserView.as_view()
 social_profile_create = SocialProfileViewSet.as_view({'post': 'create'})
 social_profile_update_delete = SocialProfileViewSet.as_view({'put': 'update', 'delete': 'destroy'})
-update_location = UpdateLocationView.as_view()
-nearby_users = NearbyUsersView.as_view()
-change_password = ChangePasswordView.as_view()
+tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
+tokens_list = TokensViewSet.as_view({'get': 'list'})
+tutorial_settings = UpdateTutorialSettingsView.as_view()
+user_details = UserDetailView.as_view()

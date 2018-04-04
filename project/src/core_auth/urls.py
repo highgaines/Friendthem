@@ -8,9 +8,10 @@ urlpatterns = [
     path('auth/me/tokens/errors/', views.errors_list, name='list_errors'),
     path('auth/me/tokens/<provider>/', views.tokens_get, name='get_token'),
 
-    path('profile/', views.update_profile, name='profile'),
+    path('profile/', views.profile_update, name='profile'),
     path('profile/me/', views.user_details, name='me'),
-    path('profile/location/', views.update_location, name='location'),
+    path('profile/location/', views.location_update, name='location'),
+    path('profile/tutorial/', views.tutorial_settings, name='tutorial'),
 
     path('social_profile/', views.social_profile_create, name='social_profile_create'),
     path('social_profile/<provider>/', views.social_profile_update_delete, name='social_profile_update_delete'),

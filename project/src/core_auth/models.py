@@ -66,6 +66,10 @@ class User(AbstractUser):
     ghost_mode = models.BooleanField(default=False)
     notifications = models.BooleanField(default=True)
 
+    tutorial_complete = models.BooleanField(default=False)
+    invite_tutorial = models.BooleanField(default=False)
+    connection_tutorial = models.BooleanField(default=False)
+
     last_location = PointField(
         geography=True, blank=True, null=True,
         help_text="Represented as (longitude, latitude)"

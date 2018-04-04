@@ -4,3 +4,4 @@ __pycache__/
 contrib/postactivate
 htmlcov/
 .coverage
+*.dump

@@ -24,7 +24,10 @@ class YoutubeConnect(DummyConnect):
             + social_auth.extra_data.get('expires', 0)
         )
         if  expiration_time < int(time.time()):
-            social_auth.refresh_token(load_strategy())
+            strategy = load_strategy()
+            refresh_token = social_auth.extra_data.get('refresh_token')
+            social_auth.refresh_token(strategy)
+            social_auth.set_extra_data({'refresh_token': refresh_token})
 
         credentials = google.oauth2.credentials.Credentials(
             token=social_auth.extra_data['access_token'],

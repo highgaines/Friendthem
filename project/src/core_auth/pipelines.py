@@ -126,9 +126,10 @@ def profile_picture(backend, response, user, social):
 
 
 def get_youtube_channel(strategy, backend, social, *args, **kwargs):
-    if backend.name == 'google-oauth2':
+    if backend.name == 'google-oauth2' and not social.extra_data.get('youtube_channel'):
         credentials = google.oauth2.credentials.Credentials(
             token=social.get_access_token(strategy),
+            refresh_token=social.extra_data.get('refresh_token'),
             client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )

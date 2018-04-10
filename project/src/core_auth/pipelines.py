@@ -87,7 +87,10 @@ def social_profile(backend, response, details, user, social, *args, **kwargs):
     social.save()
 
 def get_picture_s3_url(social, user, key):
-    api = facebook.GraphAPI(social.extra_data['access_token'])
+    api = facebook.GraphAPI(
+        social.extra_data['access_token'],
+        version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+    )
     picture_data = api.get_connections('me', 'picture?height=2048')
     key.key = 'profile-pic-{}.png'.format(user.id)
     key.content_type = picture_data['mime-type']

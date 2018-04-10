@@ -190,6 +190,7 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id,email,name,hometown,work,age_range,about,picture.height(2048)'
 }
+SOCIAL_AUTH_FACEBOOK_API_VERSION = '2.9'
 
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH2_KEY')

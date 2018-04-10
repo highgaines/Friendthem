@@ -57,7 +57,10 @@ class FacebookFeed(object):
         except (KeyError, ObjectDoesNotExist):
             raise CredentialsNotFound(self.provider, user)
 
-        return facebook.GraphAPI(access_token)
+        return facebook.GraphAPI(
+            access_token,
+            version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+        )
 
     def get_feed(self, other_user):
         try:

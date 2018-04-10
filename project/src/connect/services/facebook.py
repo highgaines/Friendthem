@@ -1,4 +1,5 @@
 import facebook, requests
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from social_django.models import UserSocialAuth
 
@@ -16,7 +17,10 @@ class FacebookConnect(DummyConnect):
         except (KeyError, ObjectDoesNotExist):
             raise CredentialsNotFound(self.provider, user)
 
-        return facebook.GraphAPI(access_token)
+        return facebook.GraphAPI(
+            access_token,
+            version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+        )
 
     def connect_users(self):
         connections = []

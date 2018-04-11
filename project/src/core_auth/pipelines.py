@@ -87,7 +87,10 @@ def social_profile(backend, response, details, user, social, *args, **kwargs):
     social.save()
 
 def get_picture_s3_url(social, user, key):
-    api = facebook.GraphAPI(social.extra_data['access_token'])
+    api = facebook.GraphAPI(
+        social.extra_data['access_token'],
+        version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+    )
     picture_data = api.get_connections('me', 'picture?height=2048')
     key.key = 'profile-pic-{}.png'.format(user.id)
     key.content_type = picture_data['mime-type']
@@ -126,9 +129,10 @@ def profile_picture(backend, response, user, social):
 
 
 def get_youtube_channel(strategy, backend, social, *args, **kwargs):
-    if backend.name == 'google-oauth2':
+    if backend.name == 'google-oauth2' and not social.extra_data.get('youtube_channel'):
         credentials = google.oauth2.credentials.Credentials(
             token=social.get_access_token(strategy),
+            refresh_token=social.extra_data.get('refresh_token'),
             client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
         )

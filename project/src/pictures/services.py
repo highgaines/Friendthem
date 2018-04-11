@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 import facebook
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from src.connect.exceptions import CredentialsNotFound
 from src.pictures.exceptions import ProfilePicturesAlbumNotFound
@@ -20,7 +21,9 @@ class FacebookProfilePicture(object):
             except (KeyError, ObjectDoesNotExist):
                 raise CredentialsNotFound(self.provider, user)
 
-        return facebook.GraphAPI(access_token)
+        return facebook.GraphAPI(
+            access_token, version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+        )
 
     def get_profile_picture_album(self, uid='me'):
         response = self.api.get_connections(uid, 'albums', limit=1000)

@@ -121,6 +121,30 @@ class ProfileDataTestCase(TestCase):
 
     @patch('src.core_auth.pipelines.boto.connect_s3')
     @patch('src.core_auth.pipelines.Key')
+    @patch('src.core_auth.pipelines.requests')
+    def test_profile_data_for_instagram_user(self, mocked_requests, mocked_s3_key, mocked_s3):
+        key = Mock()
+        key.generate_url.return_value = 'https://example.com/image.png'
+        mocked_s3_key.return_value = key
+        self.response['user'] = {}
+        self.response['user']['username'] = 'test_user'
+        self.response['user']['profile_picture'] = 'https://instagram.example.com/image.png'
+        self.backend.name = 'instagram'
+
+        pipeline = profile_data(
+            self.response, self.details, self.backend, self.user, self.social
+        )
+
+        assert pipeline is None
+
+        self.user.refresh_from_db()
+        self.social.refresh_from_db()
+
+        assert self.user.picture == "https://example.com/image.png"
+        assert 'test_user' == self.social.extra_data.get('username')
+
+    @patch('src.core_auth.pipelines.boto.connect_s3')
+    @patch('src.core_auth.pipelines.Key')
     @patch('src.core_auth.pipelines.facebook')
     def test_complete_profile_data_for_facebook_user(self, mocked_facebook, mocked_s3_key, mocked_s3):
         key = Mock()
@@ -196,22 +220,6 @@ class ProfileDataTestCase(TestCase):
         assert pipeline is None
 
         self.user.refresh_from_db()
-
-        assert self.user.picture == 'https://test.com/test.png'
-        assert 'test_user' == self.social.extra_data.get('username')
-
-    def test_profile_data_for_instagram_user(self):
-        self.response['user'] = {'username': 'test_user', 'profile_picture': 'https://test.com/test.png'}
-        self.backend.name = 'instagram'
-
-        pipeline = profile_data(
-            self.response, self.details, self.backend, self.user, self.social
-        )
-
-        assert pipeline is None
-
-        self.user.refresh_from_db()
-        self.social.refresh_from_db()
 
         assert self.user.picture == 'https://test.com/test.png'
         assert 'test_user' == self.social.extra_data.get('username')

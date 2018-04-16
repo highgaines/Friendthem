@@ -1,5 +1,5 @@
 import random, string, logging
-import boto, facebook
+import boto, facebook, requests
 import googleapiclient.discovery, google.oauth2.credentials
 from boto.s3.key import Key
 
@@ -86,15 +86,25 @@ def social_profile(backend, response, details, user, social, *args, **kwargs):
     social.extra_data.update({'username': username})
     social.save()
 
-def get_picture_s3_url(social, user, key):
-    api = facebook.GraphAPI(
-        social.extra_data['access_token'],
-        version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
-    )
-    picture_data = api.get_connections('me', 'picture?height=2048')
-    key.key = 'profile-pic-{}.png'.format(user.id)
-    key.content_type = picture_data['mime-type']
-    key.set_contents_from_string(picture_data['data'])
+def get_picture_s3_url(backend, social, user, key, response):
+    if backend.name == 'facebook':
+        api = facebook.GraphAPI(
+            social.extra_data['access_token'],
+            version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+        )
+        picture_data = api.get_connections('me', 'picture?height=2048')
+        key.key = 'profile-pic-{}.png'.format(user.id)
+        key.content_type = picture_data['mime-type']
+        key.set_contents_from_string(picture_data['data'])
+    elif backend.name == 'instagram':
+        picture_url = response.get('user', {}).get('profile_picture')
+        if not picture_url:
+            return
+        picture_response = requests.get(picture_url)
+        key.key = 'profile-pic-{}.png'.format(user.id)
+        key.content_type = picture_response.content
+        key.set_contents_from_string(picture_response)
+
     key.make_public()
     return key.generate_url(expires_in=0, query_auth=False)
 
@@ -102,12 +112,12 @@ def profile_picture(backend, response, user, social):
     if user.picture:
         return
 
-    if backend.name == 'facebook':
+    if backend.name == 'facebook' or backend.name == 'instagram':
         try:
             s3 = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_KEY)
             bucket = s3.get_bucket(settings.AWS_S3_BUCKET_KEY)
             key = Key(bucket)
-            picture_url = get_picture_s3_url(social, user, key)
+            picture_url = get_picture_s3_url(backend, social, user, key, response)
         except Exception as err:
             logger = logging.getLogger(__name__)
             logger.error(
@@ -118,8 +128,6 @@ def profile_picture(backend, response, user, social):
         picture_url = response.get('profile_image_url', '').replace('_normal', '')
     elif backend.name == 'google-oauth2':
         picture_url = response.get('image', {}).get('url')
-    elif backend.name == 'instagram':
-        picture_url = response.get('user', {}).get('profile_picture')
     else:
         return
 

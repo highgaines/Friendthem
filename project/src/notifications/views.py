@@ -19,7 +19,9 @@ class DeleteNotificationView(DestroyAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        return self.request.user.received_notifications.all()
+        return self.request.user.received_notifications.order_by(
+            '-created_at', '-id'
+        )
 
 add_device_view = AddDeviceView.as_view()
 notifications_view = ListNotificationsView.as_view()

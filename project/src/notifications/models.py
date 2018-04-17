@@ -19,3 +19,4 @@ class Notification(models.Model):
         on_delete=models.CASCADE,
         blank=True, null=True
     )
+    created_at = models.DateTimeField(auto_now_add=True)

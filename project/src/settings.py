@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'src.feed',
     'src.notifications',
     'src.pictures',
+    'src.invite',
 ]
 
 MIDDLEWARE = [

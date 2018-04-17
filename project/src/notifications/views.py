@@ -12,7 +12,9 @@ class ListNotificationsView(ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        return self.request.user.received_notifications.all()
+        return self.request.user.received_notifications.order_by(
+            '-created_at', '-id'
+        )
 
 class DeleteNotificationView(DestroyAPIView):
     permission_classes = [IsAuthenticated]

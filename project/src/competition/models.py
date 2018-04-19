@@ -12,30 +12,6 @@ class ListWithClone(list):
     def _clone(self):
         return self
 
-class CompetitionUserQuerySet(models.query.QuerySet):
-    def order_by(self, *field_names):
-        field_names = list(field_names)
-        property_fields = [
-            'friendthem_points', 'fraternity_points',
-            'sorority_points', 'social_sync_points', 'total_points',
-        ]
-        property_fields += [f'-{field}' for field in property_fields]
-        property_orderings = []
-        for prop in property_fields:
-            if prop in field_names:
-                property_orderings.append(field_names.pop(field_names.index(prop)))
-
-        objs = super(CompetitionUserQuerySet, self).order_by(*field_names)
-
-        for prop in property_orderings:
-            field = prop.strip('-')
-            objs = ListWithClone(
-                sorted(objs, key=lambda x: getattr(x, field)(), reverse=prop.startswith('-'))
-            )
-
-        return objs
-
-
 class CompetitionUserManager(BaseUserManager):
     def get_queryset(self):
         qs = super(CompetitionUserManager, self).get_queryset()
@@ -90,18 +66,23 @@ class CompetitionUser(User):
     objects = CompetitionUserManager()
     def friendthem_points(self):
         return obj.friendthem_points
+    friendthem_points.admin_order_field = 'friendthem_points'
 
     def fraternity_points(self):
         return obj.fraternity_points
+    fraternity_points.admin_order_field = 'fraternity_points'
 
     def sorority_points(self):
         return obj.sorority_points
+    sorority_points.admin_order_field = 'sorority_points'
 
     def social_sync_points(self):
         return obj.social_sync_points
+    social_sync_points.admin_order_field = 'social_sync_points'
 
     def total_points(self):
         return obj.total_points
+    total_points.admin_order_field = 'total_points'
 
     class Meta:
         proxy = True

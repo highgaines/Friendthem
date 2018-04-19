@@ -25,3 +25,4 @@ raven==6.6.0
 google-auth==1.4.1
 boto==2.48.0
 django-admin-rangefilter==0.3.5
+django-extensions==2.0.0

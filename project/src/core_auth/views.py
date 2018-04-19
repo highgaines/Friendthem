@@ -121,7 +121,7 @@ class NearbyUsersView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        miles = self.request.GET.get('miles', 200)
+        miles = self.request.GET.get('miles', 100)
         distance = D(mi=miles)
 
         if user.last_location:
@@ -133,7 +133,6 @@ class NearbyUsersView(ListAPIView):
         else:
             queryset = User.objects.filter(featured=True)
             last_location = GEOSGeometry('POINT (0 0)', srid=4326)
-
 
         return queryset.annotate(
             distance=Distance('last_location', last_location)

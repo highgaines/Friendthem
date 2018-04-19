@@ -134,7 +134,6 @@ class NearbyUsersView(ListAPIView):
             queryset = User.objects.filter(featured=True)
             last_location = GEOSGeometry('POINT (0 0)', srid=4326)
 
-
         return queryset.annotate(
             distance=Distance('last_location', last_location)
         ).exclude(id=self.request.user.id)

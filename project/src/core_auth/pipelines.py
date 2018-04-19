@@ -96,14 +96,17 @@ def get_picture_s3_url(backend, social, user, key, response):
         key.key = 'profile-pic-{}.png'.format(user.id)
         key.content_type = picture_data['mime-type']
         key.set_contents_from_string(picture_data['data'])
-    elif backend.name == 'instagram':
-        picture_url = response.get('user', {}).get('profile_picture')
+    elif backend.name in ['instagram', 'twitter']:
+        if backend.name == 'instagram':
+            picture_url = response.get('user', {}).get('profile_picture')
+        elif backend.name == 'twitter':
+            picture_url = response.get('profile_image_url', '').replace('_normal', '')
         if not picture_url:
             return
         picture_response = requests.get(picture_url)
         key.key = 'profile-pic-{}.png'.format(user.id)
-        key.content_type = picture_response.content
-        key.set_contents_from_string(picture_response)
+        key.content_type = picture_response.headers['Content-Type']
+        key.set_contents_from_string(picture_response.content)
 
     key.make_public()
     return key.generate_url(expires_in=0, query_auth=False)
@@ -112,7 +115,7 @@ def profile_picture(backend, response, user, social):
     if user.picture:
         return
 
-    if backend.name == 'facebook' or backend.name == 'instagram':
+    if backend.name in ['facebook', 'instagram', 'twitter']:
         try:
             s3 = boto.connect_s3(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_KEY)
             bucket = s3.get_bucket(settings.AWS_S3_BUCKET_KEY)
@@ -124,8 +127,6 @@ def profile_picture(backend, response, user, social):
                 f'Could not save Facebook profile picture on s3 for user {user}. - {err}'
             )
             picture_url = None
-    elif backend.name == 'twitter':
-        picture_url = response.get('profile_image_url', '').replace('_normal', '')
     elif backend.name == 'google-oauth2':
         picture_url = response.get('image', {}).get('url')
     else:

@@ -4,9 +4,9 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-FRIENDTHEM_USER_ID = 1
-FRATERNITY_USER_IDS = [2, 3]
-SORORITY_USER_IDS = [3, 4]
+FRIENDTHEM_USER_ID = 830
+FRATERNITY_USER_IDS = [829, 44]
+SORORITY_USER_IDS = [1567, 652]
 
 class ListWithClone(list):
     def _clone(self):
@@ -36,7 +36,6 @@ class CompetitionUserQuerySet(models.query.QuerySet):
         return objs
 
 
-
 class CompetitionUserManager(BaseUserManager):
     def get_queryset(self):
         qs = super(CompetitionUserManager, self).get_queryset()
@@ -53,6 +52,7 @@ class CompetitionUserManager(BaseUserManager):
             social_count=models.Count('social_auth')
         )
         return qs.filter(social_count__gte=3)
+
 
 class CompetitionUser(User):
     objects = CompetitionUserQuerySet.as_manager()

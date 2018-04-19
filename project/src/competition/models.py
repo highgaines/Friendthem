@@ -40,6 +40,38 @@ class CompetitionUserManager(BaseUserManager):
     def get_queryset(self):
         qs = super(CompetitionUserManager, self).get_queryset()
         qs = qs.annotate(
+            social_count=models.Count('social_auth'),
+            friendthem_points=models.Count(
+                'connection_user_1__user_2',
+                filter=models.Q(connection_user_1__user_2=FRIENDTHEM_USER_ID),
+                distinct=True
+            ),
+            fraternity_points=models.Count(
+                'connection_user_1__user_2',
+                filter=models.Q(connection_user_1__user_2__in=FRATERNITY_USER_IDS),
+                distinct=True
+            ),
+            sorority_points=models.Count(
+                'connection_user_1__user_2',
+                filter=models.Q(connection_user_1__user_2__in=SORORITY_USER_IDS),
+                distinct=True
+            ),
+            social_sync_points=models.Case(
+                models.When(social_count__gte=3, then=2),
+                default=0,
+                output_field=models.IntegerField()
+            ),
+            total_points=models.F('social_sync_points') + \
+                         models.F('sorority_points') + \
+                         models.F('fraternity_points') +
+                         models.F('friendthem_points')
+        )
+        return qs
+
+
+    def _get_queryset(self):
+        qs = super(CompetitionUserManager, self).get_queryset()
+        qs = qs.annotate(
             invite_points=models.Count('invite') * 10,
             connection_from_points=models.Count('connection_user_1') * 1,
             connection_to_points=models.Count('connection_user_2') * 5
@@ -55,54 +87,21 @@ class CompetitionUserManager(BaseUserManager):
 
 
 class CompetitionUser(User):
-    objects = CompetitionUserQuerySet.as_manager()
-    class Meta:
-        proxy = True
-
+    objects = CompetitionUserManager()
     def friendthem_points(self):
-        if self._friendthem_points is None:
-            self._friendthem_points = self.connection_user_1.filter(
-                user_2=FRIENDTHEM_USER_ID
-            ).distinct('user_2').count()
-        return self._friendthem_points
-    friendthem_points.admin_order_field = 'friendthem_points'
-    _friendthem_points = None
+        return obj.friendthem_points
 
     def fraternity_points(self):
-        if self._fraternity_points is None:
-            self._fraternity_points = self.connection_user_1.filter(
-                user_2__in=FRATERNITY_USER_IDS
-            ).distinct('user_2').count()
-
-        return self._fraternity_points
-    fraternity_points.admin_order_field = 'fraternity_points'
-    _fraternity_points = None
+        return obj.fraternity_points
 
     def sorority_points(self):
-        if self._sorority_points is None:
-            self._sorority_points = self.connection_user_1.filter(
-                user_2__in=SORORITY_USER_IDS
-            ).distinct('user_2').count()
-        return self._sorority_points
-    sorority_points.admin_order_field = 'sorority_points'
-    _sorority_points = None
+        return obj.sorority_points
 
     def social_sync_points(self):
-        if self._social_sync_points is None:
-            if self.social_auth.count() >= 3:
-                self._social_sync_points = 2
-            else:
-                self._social_sync_points = 0
-        return self._social_sync_points
-    social_sync_points.admin_order_field = 'social_sync_points'
-    _social_sync_points = None
+        return obj.social_sync_points
 
     def total_points(self):
-        if self._total_points is None:
-            self._total_points = sum([
-                self.friendthem_points(), self.fraternity_points(),
-                self.sorority_points(), self.social_sync_points()
-            ])
-        return self._total_points
-    total_points.admin_order_field = 'total_points'
-    _total_points = None
+        return obj.total_points
+
+    class Meta:
+        proxy = True

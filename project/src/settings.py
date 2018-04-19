@@ -45,12 +45,14 @@ INSTALLED_APPS = [
     'rest_framework_social_oauth2',
     'phonenumber_field',
     'mapwidgets',
+    'rangefilter',
     'src.core_auth',
     'src.connect',
     'src.feed',
     'src.notifications',
     'src.pictures',
     'src.invite',
+    'src.competition',
 ]
 
 MIDDLEWARE = [

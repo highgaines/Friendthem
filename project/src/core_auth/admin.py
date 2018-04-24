@@ -12,6 +12,7 @@ class SocialAuthInline(admin.TabularInline):
     fields = ('provider', 'uid', 'extra_data')
 
 class UserAdmin(admin.ModelAdmin):
+    search_fields = ('id', 'email', 'first_name', 'last_name')
     fieldsets = (
         ('User Data', {'fields': ('email', ('first_name', 'last_name'), 'featured')}),
         ('Profile', {'fields': (

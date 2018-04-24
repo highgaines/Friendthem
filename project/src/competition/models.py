@@ -8,13 +8,9 @@ FRIENDTHEM_USER_ID = 830
 FRATERNITY_USER_IDS = [829, 44]
 SORORITY_USER_IDS = [1567, 652]
 
-class ListWithClone(list):
-    def _clone(self):
-        return self
-
-class CompetitionUserManager(BaseUserManager):
+class CollegeCompetitionUserManager(BaseUserManager):
     def get_queryset(self):
-        qs = super(CompetitionUserManager, self).get_queryset()
+        qs = super(CollegeCompetitionUserManager, self).get_queryset()
         qs = qs.annotate(
             social_count=models.Count('social_auth'),
             friendthem_points=models.Count(
@@ -45,25 +41,9 @@ class CompetitionUserManager(BaseUserManager):
         return qs
 
 
-    def _get_queryset(self):
-        qs = super(CompetitionUserManager, self).get_queryset()
-        qs = qs.annotate(
-            invite_points=models.Count('invite') * 10,
-            connection_from_points=models.Count('connection_user_1') * 1,
-            connection_to_points=models.Count('connection_user_2') * 5
-        ).annotate(
-            total_points=(
-                models.F('invite_points') +
-                models.F('connection_from_points') +
-                models.F('connection_to_points')
-            ),
-            social_count=models.Count('social_auth')
-        )
-        return qs.filter(social_count__gte=3)
+class CollegeCompetitionUser(User):
+    objects = CollegeCompetitionUserManager()
 
-
-class CompetitionUser(User):
-    objects = CompetitionUserManager()
     def friendthem_points(self):
         return obj.friendthem_points
     friendthem_points.admin_order_field = 'friendthem_points'
@@ -75,6 +55,61 @@ class CompetitionUser(User):
     def sorority_points(self):
         return obj.sorority_points
     sorority_points.admin_order_field = 'sorority_points'
+
+    def social_sync_points(self):
+        return obj.social_sync_points
+    social_sync_points.admin_order_field = 'social_sync_points'
+
+    def total_points(self):
+        return obj.total_points
+    total_points.admin_order_field = 'total_points'
+
+    class Meta:
+        proxy = True
+
+
+class CompetitionUserManager(BaseUserManager):
+    def get_queryset(self):
+        qs = super(CompetitionUserManager, self).get_queryset()
+        qs = qs.annotate(
+            social_count=models.Count('social_auth'),
+            received_connections=models.Count(
+                'connection_user_2__user_1', distinct=True
+            ),
+            sent_connections=models.Count(
+                'connection_user_1__user_2', distinct=True
+            ),
+            invites=models.Count('invite'),
+            sent_connections_points=models.F('sent_connections') * 2,
+            received_connections_points=models.F('received_connections') * 10,
+            invitations_points=models.F('invites') * 100,
+            social_sync_points=models.Case(
+                models.When(social_count__gte=3, then=33),
+                default=0,
+                output_field=models.IntegerField()
+            ),
+            total_points=models.F('social_sync_points') + \
+                         models.F('received_connections_points') + \
+                         models.F('sent_connections_points') +
+                         models.F('invitations_points')
+        )
+        return qs
+
+
+class CompetitionUser(User):
+    objects = CompetitionUserManager()
+
+    def invitations_points(self):
+        return obj.invitations_points
+    invitations_points.admin_order_field = 'invitations_points'
+
+    def received_connections_points(self):
+        return obj.received_connections_points
+    received_connections_points.admin_order_field = 'received_connections_points'
+
+    def sent_connections_points(self):
+        return obj.sent_connections_points
+    sent_connections_points.admin_order_field = 'sent_connections_points'
 
     def social_sync_points(self):
         return obj.social_sync_points

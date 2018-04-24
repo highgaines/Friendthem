@@ -11,6 +11,7 @@ class BaseCompetitionAdmin(admin.ModelAdmin):
     list_filter = (
         ('date_joined', DateRangeFilter),
     )
+    readonly_fields = ('last_location', )
 
     def _full_name(self, obj):
         return obj.get_full_name()

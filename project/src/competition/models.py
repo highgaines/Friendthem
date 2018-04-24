@@ -73,12 +73,8 @@ class CompetitionUserManager(BaseUserManager):
         qs = super(CompetitionUserManager, self).get_queryset()
         qs = qs.annotate(
             social_count=models.Count('social_auth'),
-            received_connections=models.Count(
-                'connection_user_2__user_1', distinct=True
-            ),
-            sent_connections=models.Count(
-                'connection_user_1__user_2', distinct=True
-            ),
+            received_connections=models.Count('connection_user_2__user_1'),
+            sent_connections=models.Count('connection_user_1__user_2'),
             invites=models.Count('invite'),
             sent_connections_points=models.F('sent_connections') * 2,
             received_connections_points=models.F('received_connections') * 10,

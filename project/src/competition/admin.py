@@ -21,12 +21,14 @@ class CollegeCompetitionAdmin(BaseCompetitionAdmin):
         '_full_name', 'date_joined', 'social_sync_points', 'friendthem_points',
         'fraternity_points', 'sorority_points', 'total_points'
     )
+    readonly_fields = list_display
 
 class CompetitionAdmin(BaseCompetitionAdmin):
     list_display = (
         '_full_name', 'date_joined', 'social_sync_points', 'invitations_points',
         'received_connections_points', 'sent_connections_points', 'total_points'
     )
+    readonly_fields = list_display
 
 class CompetitionAdminSite(admin.AdminSite):
     site_header = 'Friendthem Superconnect Competition'

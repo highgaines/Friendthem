@@ -69,9 +69,5 @@ class CompetitionAdmin(BaseCompetitionAdmin):
         return self.total_points
     total_points.admin_order_field = 'total_points'
 
-class CompetitionAdminSite(admin.AdminSite):
-    site_header = 'Friendthem Superconnect Competition'
-
-competition_site = CompetitionAdminSite(name='competition_admin')
-competition_site.register(CollegeCompetitionUser, CollegeCompetitionAdmin)
-competition_site.register(CompetitionUser, CompetitionAdmin)
+admin.site.register(CollegeCompetitionUser, CollegeCompetitionAdmin)
+admin.site.register(CompetitionUser, CompetitionAdmin)

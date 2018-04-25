@@ -44,26 +44,6 @@ class CollegeCompetitionUserManager(BaseUserManager):
 class CollegeCompetitionUser(User):
     objects = CollegeCompetitionUserManager()
 
-    def friendthem_points(self):
-        return obj.friendthem_points
-    friendthem_points.admin_order_field = 'friendthem_points'
-
-    def fraternity_points(self):
-        return obj.fraternity_points
-    fraternity_points.admin_order_field = 'fraternity_points'
-
-    def sorority_points(self):
-        return obj.sorority_points
-    sorority_points.admin_order_field = 'sorority_points'
-
-    def social_sync_points(self):
-        return obj.social_sync_points
-    social_sync_points.admin_order_field = 'social_sync_points'
-
-    def total_points(self):
-        return obj.total_points
-    total_points.admin_order_field = 'total_points'
-
     class Meta:
         proxy = True
 
@@ -94,26 +74,6 @@ class CompetitionUserManager(BaseUserManager):
 
 class CompetitionUser(User):
     objects = CompetitionUserManager()
-
-    def invitations_points(self):
-        return obj.invitations_points
-    invitations_points.admin_order_field = 'invitations_points'
-
-    def received_connections_points(self):
-        return obj.received_connections_points
-    received_connections_points.admin_order_field = 'received_connections_points'
-
-    def sent_connections_points(self):
-        return obj.sent_connections_points
-    sent_connections_points.admin_order_field = 'sent_connections_points'
-
-    def social_sync_points(self):
-        return obj.social_sync_points
-    social_sync_points.admin_order_field = 'social_sync_points'
-
-    def total_points(self):
-        return obj.total_points
-    total_points.admin_order_field = 'total_points'
 
     class Meta:
         proxy = True

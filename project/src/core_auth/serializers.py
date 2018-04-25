@@ -11,7 +11,7 @@ from src.connect.models import Connection
 from src.pictures.serializers import PictureSerializer
 from src.utils.fields import PointField
 
-from src.core_auth.models import AuthError
+from src.core_auth.models import AuthError, UserQuerySet
 
 User = get_user_model()
 
@@ -233,31 +233,10 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
             return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
 
-class ConnectionPercentageMixin(object):
-    connection_percentage = serializers.SerializerMethodField()
-
-    def get_connection_percentage(self, obj):
-        user_1 = self.context['request'].user
-        user_2 = obj
-        percentage = 0
-        user_1_count = user_1.social_auth.count()
-        user_2_count = user_2.social_auth.count()
-        if user_2_count or user_1_count:
-            percentage = (
-                Connection.objects.filter(
-                    user_1=user_1, user_2=user_2
-                ).count() / min(
-                    max(1, user_1_count),
-                    max(1, user_2_count)
-                )
-            )
-
-        return min(100, round(percentage * 100))
-
-
-class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
+class NearbyUsersSerializer(RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
     connection_percentage = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True)
 
@@ -268,8 +247,14 @@ class NearbyUsersSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
             'picture', 'hobbies', 'social_profiles', 'pictures',
             'last_location', 'distance', 'connection_percentage',
             'employer', 'age_range', 'bio', 'hometown',
-            'phone_number', 'personal_email',
+            'phone_number', 'personal_email', 'category'
         )
+
+    def get_connection_percentage(self, obj):
+        return max(100, obj.connection_percentage)
+
+    def get_category(self, obj):
+        return UserQuerySet.CATEGORY_CHOICES_MAP[obj.category]
 
     def get_distance(self, obj):
         if getattr(obj, 'distance', None):

@@ -136,7 +136,7 @@ class NearbyUsersView(ListAPIView):
 
         return queryset.annotate(
             distance=Distance('last_location', last_location)
-        ).exclude(id=self.request.user.id)
+        ).exclude(id=self.request.user.id).with_connection_percentage_for_user(user)
 
 
 class ChangePasswordView(APIView):

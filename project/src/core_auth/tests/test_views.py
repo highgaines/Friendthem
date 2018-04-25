@@ -556,6 +556,7 @@ class NearbyUsersViewTestCase(APITestCase):
         assert 'distance' in other_user_data
         assert 0.006917072471764893 == other_user_data['distance']
         assert 100 == other_user_data['connection_percentage']
+        assert 'sent' == other_user_data['category']
         assert other_user_data['phone_number'] == other_user_1.phone_number.as_e164
         assert other_user_data['personal_email'] == other_user_1.personal_email
 

@@ -6,6 +6,7 @@ from rest_framework.generics import CreateAPIView
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from src.core_auth.models import UserQuerySet
 from src.connect.views import ConnectionAPIView
 from src.connect.serializers import ConnectionSerializer
 
@@ -98,4 +99,5 @@ class ConnectedUsersAPIViewTestCase(APITestCase):
         assert 1 == len(content)
         user_data = content[0]
         assert user_data['id'] == self.connected_user.id
-        assert 50 == user_data['connection_percentage']
+        assert 100 == user_data['connection_percentage']
+        assert 'sent' == user_data['category']

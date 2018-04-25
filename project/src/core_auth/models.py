@@ -13,7 +13,70 @@ from phonenumber_field.modelfields import PhoneNumberField
 from src.pictures.services import FacebookProfilePicture
 from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
+class UserQuerySet(models.QuerySet):
+    SENT = 1
+    RECEIVED = 2
+    BOTH = 3
+    NOTHING = 0
+    CATEGORY_CHOICES_MAP = {
+        SENT: 'sent',
+        RECEIVED: 'received',
+        BOTH: 'both',
+        NOTHING: 'nothing',
+    }
+
+    def with_connection_percentage_for_user(self, user):
+
+        user_social_count = user.social_auth.count()
+        qs = self.exclude(id=user.id).annotate(
+            category=models.Case(
+                models.When(
+                    models.Q(connection_user_2__user_1=user) & \
+                    ~models.Q(connection_user_1__user_2=user), then=UserQuerySet.SENT
+                ),
+                models.When(
+                    models.Q(connection_user_1__user_2=user) & \
+                    ~models.Q(connection_user_2__user_1=user), then=UserQuerySet.RECEIVED
+                ),
+                models.When(
+                    models.Q(connection_user_1__user_2=user) & \
+                    models.Q(connection_user_2__user_1=user), then=UserQuerySet.BOTH
+                ),
+                default=UserQuerySet.NOTHING,
+                output_field=models.CharField(max_length=10)
+            )
+        ).distinct()
+        qs = qs.annotate(
+            social_count=models.Count('social_auth'),
+            sent_connections_count=models.Count(
+                'connection_user_2', filter=models.Q(connection_user_2__user_1=user)
+            ),
+            received_connections_count=models.Count(
+                'connection_user_1', filter=models.Q(connection_user_1__user_2=user)
+            ),
+            connection_percentage=models.Case(
+                models.When(
+                    category=UserQuerySet.BOTH,
+                    then=(
+                        models.F('received_connections_count') + \
+                        models.F('sent_connections_count')
+                    ) * 100. / (models.F('social_count') + user_social_count)
+                ),
+                models.When(
+                    category=UserQuerySet.RECEIVED,
+                    then=models.F('received_connections_count') * 100. / user_social_count),
+                models.When(
+                    category=UserQuerySet.SENT,
+                    then=models.F('sent_connections_count') * 100. / models.F('social_count')),
+                default=0,
+                output_field=models.IntegerField()
+            )
+          )
+
+        return qs
+
 class UserManager(BaseUserManager):
+
     def create_user(self, email, password=None, *args, **kwargs):
         """
         Creates and saves a User with the given email, date of
@@ -80,7 +143,7 @@ class User(AbstractUser):
     email_is_private = models.BooleanField(default=False)
     is_random_email = models.BooleanField(default=False)
 
-    objects = UserManager()
+    objects = UserManager.from_queryset(UserQuerySet)()
 
 
     USERNAME_FIELD = 'email'

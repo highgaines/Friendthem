@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
-from src.core_auth.serializers import (ConnectionPercentageMixin,
-                                       RetrieveUserSerializer,
+from src.core_auth.serializers import (RetrieveUserSerializer,
                                        SocialProfileSerializer)
 from src.pictures.serializers import PictureSerializer
 from src.notifications.services import notify_user
 
+from src.core_auth.models import UserQuerySet
 from src.connect.models import Connection
 from src.connect import services
 
@@ -51,8 +51,9 @@ class ConnectionSerializer(serializers.ModelSerializer):
         except:
             return False
 
-class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer):
+class ConnectedUserSerializer(RetrieveUserSerializer):
     connection_percentage = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(many=True, source='social_auth')
     pictures = PictureSerializer(many=True)
 
@@ -63,5 +64,11 @@ class ConnectedUserSerializer(ConnectionPercentageMixin, RetrieveUserSerializer)
             'picture', 'hobbies', 'social_profiles',
             'connection_percentage', 'employer', 'age_range', 'bio',
             'phone_number', 'personal_email', 'hometown',
-            'pictures'
+            'pictures', 'category',
         )
+
+    def get_connection_percentage(self, obj):
+        return max(100, obj.connection_percentage)
+
+    def get_category(self, obj):
+        return UserQuerySet.CATEGORY_CHOICES_MAP[obj.category]

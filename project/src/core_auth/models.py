@@ -45,7 +45,7 @@ class UserQuerySet(models.QuerySet):
                 default=UserQuerySet.NOTHING,
                 output_field=models.CharField(max_length=10)
             )
-        ).distinct()
+        )
         qs = qs.annotate(
             social_count=models.Count('social_auth'),
             sent_connections_count=models.Count(
@@ -71,7 +71,7 @@ class UserQuerySet(models.QuerySet):
                 default=0,
                 output_field=models.IntegerField()
             )
-          )
+          ).distinct()
 
         return qs
 

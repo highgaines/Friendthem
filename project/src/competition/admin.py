@@ -23,15 +23,51 @@ class CollegeCompetitionAdmin(BaseCompetitionAdmin):
         'fraternity_points', 'sorority_points', 'total_points'
     )
 
+    def friendthem_points(self, obj):
+        return obj.friendthem_points
+    friendthem_points.admin_order_field = 'friendthem_points'
+
+    def fraternity_points(self, obj):
+        return obj.fraternity_points
+    fraternity_points.admin_order_field = 'fraternity_points'
+
+    def sorority_points(self, obj):
+        return obj.sorority_points
+    sorority_points.admin_order_field = 'sorority_points'
+
+    def social_sync_points(self, obj):
+        return obj.social_sync_points
+    social_sync_points.admin_order_field = 'social_sync_points'
+
+    def total_points(self, obj):
+        return obj.total_points
+    total_points.admin_order_field = 'total_points'
+
 class CompetitionAdmin(BaseCompetitionAdmin):
     list_display = (
         '_full_name', 'date_joined', 'social_sync_points', 'invitations_points',
         'received_connections_points', 'sent_connections_points', 'total_points'
     )
 
-class CompetitionAdminSite(admin.AdminSite):
-    site_header = 'Friendthem Superconnect Competition'
+    def invitations_points(self, obj):
+        return obj.invitations_points
+    invitations_points.admin_order_field = 'invitations_points'
 
-competition_site = CompetitionAdminSite(name='competition_admin')
-competition_site.register(CollegeCompetitionUser, CollegeCompetitionAdmin)
-competition_site.register(CompetitionUser, CompetitionAdmin)
+    def received_connections_points(self, obj):
+        return obj.received_connections_points
+    received_connections_points.admin_order_field = 'received_connections_points'
+
+    def sent_connections_points(self, obj):
+        return obj.sent_connections_points
+    sent_connections_points.admin_order_field = 'sent_connections_points'
+
+    def social_sync_points(self, obj):
+        return obj.social_sync_points
+    social_sync_points.admin_order_field = 'social_sync_points'
+
+    def total_points(self):
+        return self.total_points
+    total_points.admin_order_field = 'total_points'
+
+admin.site.register(CollegeCompetitionUser, CollegeCompetitionAdmin)
+admin.site.register(CompetitionUser, CompetitionAdmin)

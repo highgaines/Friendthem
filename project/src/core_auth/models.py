@@ -26,34 +26,33 @@ class UserQuerySet(models.QuerySet):
     }
 
     def with_connection_percentage_for_user(self, user):
-
         user_social_count = user.social_auth.count()
         qs = self.exclude(id=user.id).annotate(
-            category=models.Case(
-                models.When(
-                    models.Q(connection_user_2__user_1=user) & \
-                    ~models.Q(connection_user_1__user_2=user), then=UserQuerySet.SENT
-                ),
-                models.When(
-                    models.Q(connection_user_1__user_2=user) & \
-                    ~models.Q(connection_user_2__user_1=user), then=UserQuerySet.RECEIVED
-                ),
-                models.When(
-                    models.Q(connection_user_1__user_2=user) & \
-                    models.Q(connection_user_2__user_1=user), then=UserQuerySet.BOTH
-                ),
-                default=UserQuerySet.NOTHING,
-                output_field=models.CharField(max_length=10)
-            )
-        )
-        qs = qs.annotate(
-            social_count=models.Count('social_auth'),
             sent_connections_count=models.Count(
                 'connection_user_2', filter=models.Q(connection_user_2__user_1=user)
             ),
             received_connections_count=models.Count(
                 'connection_user_1', filter=models.Q(connection_user_1__user_2=user)
             ),
+            category=models.Case(
+                models.When(
+                    models.Q(sent_connections_count__gte=1) & \
+                    models.Q(received_connections_count=0), then=UserQuerySet.SENT
+                ),
+                models.When(
+                    models.Q(received_connections_count__gte=1) & \
+                    models.Q(sent_connections_count=0), then=UserQuerySet.RECEIVED
+                ),
+                models.When(
+                    models.Q(sent_connections_count__gte=1) & \
+                    models.Q(received_connections_count__gte=1), then=UserQuerySet.BOTH
+                ),
+                default=UserQuerySet.NOTHING,
+                output_field=models.CharField(max_length=10)
+            )
+        ).distinct()
+        qs = qs.annotate(
+            social_count=models.Count('social_auth'),
             connection_percentage=models.Case(
                 models.When(
                     category=UserQuerySet.BOTH,
@@ -71,7 +70,7 @@ class UserQuerySet(models.QuerySet):
                 default=0,
                 output_field=models.IntegerField()
             )
-          ).distinct()
+          )
 
         return qs
 

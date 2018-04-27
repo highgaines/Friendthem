@@ -1,0 +1,19 @@
+{% load static %}
+<head>
+<script src="{% static "device-uuid/lib/device-uuid.js" %}" type="text/javascript"></script>
+</head>
+<body>
+  <h1>Device ID: <span id="device-id"></span></h1>
+  <form action="." method="POST" id="invite-form">
+    {% csrf_token %}
+    <input type="hidden" name="device-id" value="">
+  </form>
+  <script>
+    var device_id = new DeviceUUID().get();
+    document.querySelector('#device-id').innerHTML = device_id;
+    var form = document.querySelector('#invite-form');
+    var input = document.querySelector('input[name="device-id"]')
+    input.value = device_id;
+    form.submit();
+  </script>
+</body>

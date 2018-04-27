@@ -68,7 +68,7 @@ class ConnectedUserSerializer(RetrieveUserSerializer):
         )
 
     def get_connection_percentage(self, obj):
-        return max(100, obj.connection_percentage)
+        return min(100, obj.connection_percentage)
 
     def get_category(self, obj):
         return UserQuerySet.CATEGORY_CHOICES_MAP[obj.category]

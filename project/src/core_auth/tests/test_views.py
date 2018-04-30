@@ -335,6 +335,7 @@ class UpdateProfileViewTests(APITestCase):
         assert data['hometown'] == user.hometown
         assert data['occupation'] == user.occupation
 
+
 class TutorialViewTests(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
@@ -540,17 +541,17 @@ class NearbyUsersViewTestCase(APITestCase):
             last_location=GEOSGeometry('POINT (0.0001 0)'),
             phone_number='+552133333333', phone_is_private=False,
             email_is_private=False, ghost_mode=False, featured=False,
-            _fill_optional=True
+            _fill_optional=True, picture=None
         )
         ghost_user = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), ghost_mode=True)
         mommy.make('UserSocialAuth', user=other_user_1)
         mommy.make('Connection', user_1=self.user, user_2=other_user_1)
-        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (20 0)'))
+        other_user_2 = mommy.make(User, last_location=GEOSGeometry('POINT (0.0001 0)'), picture='http://example.com')
         response = self.client.get(self.url + '?miles=200')
         assert 200 == response.status_code
 
-        assert 1 == len(response.json())
-        other_user_data = response.json()[0]
+        assert 2 == len(response.json())
+        other_user_data = response.json()[1]
 
         assert other_user_data['id'] == other_user_1.id
         assert 'distance' in other_user_data

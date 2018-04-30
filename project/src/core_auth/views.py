@@ -1,6 +1,7 @@
 from copy import copy
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
@@ -155,9 +156,8 @@ class ChangePasswordView(APIView):
 
 
 def redirect_user_to_app(request):
-    location = 'FriendThem://'
     response = HttpResponse('', status=302)
-    response['Location'] = location
+    response['Location'] = settings.APP_URL
 
     return response
 

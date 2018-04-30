@@ -5,7 +5,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class Invite(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    phone_number = PhoneNumberField()
+    device_id = models.UUIDField(max_length=36)
 
     class Meta:
-        unique_together = ('user', 'phone_number')
+        unique_together = ('user', 'device_id')

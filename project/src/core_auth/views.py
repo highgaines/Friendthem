@@ -135,9 +135,16 @@ class NearbyUsersView(ListAPIView):
             queryset = User.objects.filter(featured=True)
             last_location = GEOSGeometry('POINT (0 0)', srid=4326)
 
-        return queryset.annotate(
+        queryset = queryset.annotate(
             distance=Distance('last_location', last_location)
-        ).exclude(id=self.request.user.id).with_connection_percentage_for_user(user)
+        ).exclude(
+            id=self.request.user.id
+        ).with_connection_percentage_for_user(user)
+        return queryset.extra(
+            select={'picture_is_null': 'picture is NULL'},
+            order_by=['picture_is_null',],
+        )
+
 
 
 class ChangePasswordView(APIView):

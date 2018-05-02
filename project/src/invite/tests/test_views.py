@@ -1,42 +1,51 @@
+import uuid
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APITestCase
 from model_mommy import mommy
 
 from src.invite.models import Invite
 
 User = get_user_model()
 
-class ListCreateInviteViewTests(APITestCase):
+class CheckInviteTestCase(TestCase):
     def setUp(self):
         self.user = mommy.make(User)
-        self.client.force_authenticate(self.user)
-        self.url = reverse('invite:invite')
+        self.uuid = uuid.uuid4()
+        self.url = reverse('invite:check_invite', kwargs={'user_id': self.user.id})
 
-    def test_login_required(self):
-        self.client.logout()
-        response = self.client.get(self.url)
-        assert 401 == response.status_code
-
-    def test_create_invite(self):
-        data = {'phone_number': '+553299999999'}
-        response = self.client.post(self.url, data=data)
-        assert 201 == response.status_code
-        invite = Invite.objects.first()
-        assert data['phone_number'] == invite.phone_number
-        assert self.user == invite.user
-
-    def test_cant_create_invite_with_same_user_and_phone_number(self):
-        data = {'phone_number': '+553299999999'}
-        Invite.objects.create(phone_number=data['phone_number'], user=self.user)
-        response = self.client.post(self.url, data=data)
-        assert 400 == response.status_code
-
-    def test_list_invites(self):
-        data = {'phone_number': '+553299999999'}
-        Invite.objects.create(phone_number=data['phone_number'], user=self.user)
+    def test_get_returns_correct_template(self):
         response = self.client.get(self.url)
         assert 200 == response.status_code
-        content = response.json()
-        assert 1 == len(response.json())
-        assert data == content[0]
+        assert 'check_invite.html' == response.templates[0].name
+
+    def test_get_returns_404_if_user_does_not_exist(self):
+        self.url = reverse('invite:check_invite', kwargs={'user_id': 999})
+        response = self.client.get(self.url)
+        assert 404 == response.status_code
+
+    def test_post_creates_invite_if_device_and_invite_dont_exist(self):
+        response = self.client.post(self.url, data={'device-id': self.uuid})
+        assert 302 == response.status_code
+        assert response['Location'] == settings.STORE_URL
+        assert 1 == Invite.objects.count()
+
+    def test_post_doesnt_create_invite_if_device_exists(self):
+        mommy.make('Device', device_id=self.uuid)
+        response = self.client.post(self.url, data={'device-id': self.uuid})
+        assert 302 == response.status_code
+        assert response['Location'] == settings.STORE_URL
+        assert 0 == Invite.objects.count()
+
+    def test_post_doesnt_create_invite_if_invite_alredy_exists(self):
+        mommy.make('Invite', user=self.user, device_id=self.uuid)
+        response = self.client.post(self.url, data={'device-id': self.uuid})
+        assert 302 == response.status_code
+        assert response['Location'] == settings.STORE_URL
+        assert 1 == Invite.objects.count()
+
+    def test_post_returns_404_if_user_does_not_exist(self):
+        self.url = reverse('invite:check_invite', kwargs={'user_id': 999})
+        response = self.client.post(self.url)
+        assert 404 == response.status_code

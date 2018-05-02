@@ -155,7 +155,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.child('static')
-STATICFILES_STORAGE = config('STATICFILES_STORAGE', default='whitenoise.django.GzipManifestStaticFilesStorage')
+STATICFILES_STORAGE = config('STATICFILES_STORAGE', default='django.contrib.staticfiles.storage.StaticFilesStorage')
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'npm.finders.NpmFinder',
+]
 
 # configuring media
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -246,3 +251,6 @@ INSTALLED_APPS += ('raven.contrib.django.raven_compat', )
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
 AWS_SECRET_KEY = config('AWS_SECRET_KEY')
 AWS_S3_BUCKET_KEY = config('AWS_S3_BUCKET_KEY')
+
+STORE_URL = 'http://onelink.to/7rmz9h'
+APP_URL = 'FriendThem://'

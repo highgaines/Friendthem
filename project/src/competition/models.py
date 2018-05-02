@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth import get_user_model
+from src.notifications.models import Device
 
 User = get_user_model()
 
@@ -55,10 +56,18 @@ class CompetitionUserManager(BaseUserManager):
             social_count=models.Count('social_auth'),
             received_connections=models.Count('connection_user_2__user_1'),
             sent_connections=models.Count('connection_user_1__user_2'),
-            invites=models.Count('invite'),
+            invite_count=models.Count(
+                'invite__device_id',
+                filter=models.Q(
+                    invite__device_id__in=Device.objects.all().values_list(
+                        'device_id', flat=True
+                    )
+                ),
+                distinct=True
+            ),
             sent_connections_points=models.F('sent_connections') * 2,
             received_connections_points=models.F('received_connections') * 10,
-            invitations_points=models.F('invites') * 100,
+            invitations_points=models.F('invite_count') * 100,
             social_sync_points=models.Case(
                 models.When(social_count__gte=3, then=33),
                 default=0,

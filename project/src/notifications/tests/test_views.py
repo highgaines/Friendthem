@@ -1,3 +1,4 @@
+import uuid
 from model_mommy import mommy
 from rest_framework.test import APITestCase
 
@@ -8,7 +9,7 @@ from src.notifications.models import Device, Notification
 
 User = get_user_model()
 
-class ConnectionAPIViewTestCase(APITestCase):
+class DeviceAPIViewTestCase(APITestCase):
     def setUp(self):
         self.user = mommy.make(User)
         self.client.force_authenticate(self.user)
@@ -20,11 +21,12 @@ class ConnectionAPIViewTestCase(APITestCase):
         assert 401 == response.status_code
 
     def test_create_device_for_user(self):
-        data = {'device_id': 'abcdef1234'}
+        device_id = uuid.uuid4()
+        data = {'device_id': device_id}
         response = self.client.post(self.url, data=data)
         assert 201 == response.status_code
         device = Device.objects.first()
-        assert 'abcdef1234' == device.device_id
+        assert device_id == device.device_id
         assert self.user == device.user
 
 class NotificationsViewTestCase(APITestCase):

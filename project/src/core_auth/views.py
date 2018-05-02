@@ -1,6 +1,7 @@
 from copy import copy
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
@@ -134,9 +135,16 @@ class NearbyUsersView(ListAPIView):
             queryset = User.objects.filter(featured=True)
             last_location = GEOSGeometry('POINT (0 0)', srid=4326)
 
-        return queryset.annotate(
+        queryset = queryset.annotate(
             distance=Distance('last_location', last_location)
-        ).exclude(id=self.request.user.id).with_connection_percentage_for_user(user)
+        ).exclude(
+            id=self.request.user.id
+        ).with_connection_percentage_for_user(user)
+        return queryset.extra(
+            select={'picture_is_null': 'picture is NULL'},
+            order_by=['picture_is_null',],
+        )
+
 
 
 class ChangePasswordView(APIView):
@@ -155,9 +163,8 @@ class ChangePasswordView(APIView):
 
 
 def redirect_user_to_app(request):
-    location = 'FriendThem://'
     response = HttpResponse('', status=302)
-    response['Location'] = location
+    response['Location'] = settings.APP_URL
 
     return response
 

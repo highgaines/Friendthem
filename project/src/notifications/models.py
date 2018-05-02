@@ -4,6 +4,7 @@ from django.db import models
 class Device(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     device_id = models.UUIDField(max_length=36)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Notification(models.Model):
     message = models.TextField()

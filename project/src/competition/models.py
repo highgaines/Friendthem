@@ -54,8 +54,8 @@ class CompetitionUserManager(BaseUserManager):
         qs = super(CompetitionUserManager, self).get_queryset()
         qs = qs.annotate(
             social_count=models.Count('social_auth'),
-            received_connections=models.Count('connection_user_2__user_1'),
-            sent_connections=models.Count('connection_user_1__user_2'),
+            received_connections=models.Count('connection_user_2__user_1', distinc=True),
+            sent_connections=models.Count('connection_user_1__user_2', distinct=True),
             invite_count=models.Count(
                 'invite__device_id',
                 filter=models.Q(

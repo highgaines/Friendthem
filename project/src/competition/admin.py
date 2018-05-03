@@ -65,8 +65,8 @@ class CompetitionAdmin(BaseCompetitionAdmin):
         return obj.social_sync_points
     social_sync_points.admin_order_field = 'social_sync_points'
 
-    def total_points(self):
-        return self.total_points
+    def total_points(self, obj):
+        return obj.total_points
     total_points.admin_order_field = 'total_points'
 
 admin.site.register(CollegeCompetitionUser, CollegeCompetitionAdmin)

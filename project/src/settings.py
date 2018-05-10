@@ -235,12 +235,14 @@ SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
 ONESIGNAL_APP_ID = config('ONESIGNAL_APP_ID')
 ONESIGNAL_APP_KEY = config('ONESIGNAL_APP_KEY')
 
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+
 MAP_WIDGETS = {
     'GooglePointFieldWidget': (
         ('zoom', 12),
         ('mapCenterLocationName', 'new york'),
     ),
-    'GOOGLE_MAP_API_KEY': config('GOOGLE_MAPS_API_KEY')
+    'GOOGLE_MAP_API_KEY': GOOGLE_MAPS_API_KEY,
 }
 
 GDAL_LIBRARY_PATH = config('GDAL_LIBRARY_PATH', default='')

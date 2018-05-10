@@ -227,7 +227,7 @@ SOCIAL_AUTH_INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'relationships follower_l
 
 SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = config('LINKEDIN_KEY')
 SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = config('LINKEDIN_SECRET')
-SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
+SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_basicprofile,r_emailaddress,w_share']
 
 SOCIAL_AUTH_TWITTER_KEY = config('TWITTER_KEY')
 SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
@@ -235,12 +235,14 @@ SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
 ONESIGNAL_APP_ID = config('ONESIGNAL_APP_ID')
 ONESIGNAL_APP_KEY = config('ONESIGNAL_APP_KEY')
 
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+
 MAP_WIDGETS = {
     'GooglePointFieldWidget': (
         ('zoom', 12),
         ('mapCenterLocationName', 'new york'),
     ),
-    'GOOGLE_MAP_API_KEY': config('GOOGLE_MAPS_API_KEY')
+    'GOOGLE_MAP_API_KEY': GOOGLE_MAPS_API_KEY,
 }
 
 GDAL_LIBRARY_PATH = config('GDAL_LIBRARY_PATH', default='')

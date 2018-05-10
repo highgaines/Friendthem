@@ -136,6 +136,7 @@ class User(AbstractUser):
         geography=True, blank=True, null=True,
         help_text="Represented as (longitude, latitude)"
     )
+    address = models.CharField(max_length=256, blank=True, null=True)
 
     featured = models.BooleanField(default=False)
     phone_is_private = models.BooleanField(default=False)

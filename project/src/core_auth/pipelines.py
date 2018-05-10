@@ -75,6 +75,11 @@ def social_profile(backend, response, details, user, social, *args, **kwargs):
         username = response.get('screen_name')
     elif backend.name == 'linkedin-oauth2':
         username = details.get('fullname')
+        profile_url = response.get('publicProfileUrl')
+        if profile_url:
+            url = profile_url.split('?')[0]
+            social.extra_data.update({'profile_url': url})
+
     elif backend.name == 'facebook':
         username = response.get('name')
         update_user_profile_from_facebook(user, response)
@@ -151,7 +156,6 @@ def get_youtube_channel(strategy, backend, social, *args, **kwargs):
             credentials=credentials
         )
         response = service.channels().list(mine=True, part='id,status').execute()
-
 
         if response.get('items') and response['items'][0]['status']['privacyStatus'] == 'public':
             social.set_extra_data({'youtube_channel': response['items'][0]['id']})

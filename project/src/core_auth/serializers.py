@@ -38,13 +38,17 @@ class SocialProfileSerializer(serializers.ModelSerializer):
     uid = serializers.CharField(read_only=True)
     provider = serializers.CharField(required=False)
     youtube_channel = serializers.SerializerMethodField()
+    profile_url = serializers.SerializerMethodField()
 
     class Meta:
         model = UserSocialAuth
-        fields = ('user', 'provider', 'username', 'uid', 'youtube_channel')
+        fields = ('user', 'provider', 'username', 'uid', 'profile_url', 'youtube_channel')
 
     def get_youtube_channel(self, obj):
         return obj.extra_data.get('youtube_channel')
+
+    def get_profile_url(self, obj):
+        return obj.extra_data.get('profile_url')
 
     def validate_provider(self, value):
         request = self.context['request']

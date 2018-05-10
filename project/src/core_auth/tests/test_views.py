@@ -1,4 +1,5 @@
 from model_mommy import mommy
+from unittest.mock import Mock, patch
 from rest_framework.test import APITestCase
 
 from django.contrib.auth import get_user_model
@@ -488,15 +489,30 @@ class UpdateLocationTests(APITestCase):
         response = self.client.put(self.url)
         assert 401 == response.status_code
 
-    def test_update_location(self):
+    @patch('src.core_auth.serializers.googlemaps')
+    def test_update_location(self, mocked_gmaps):
+        gmaps_client = Mock()
+        gmaps_client.reverse_geocode.return_value = [{
+            'formatted_address': 'Sesame Street, 0',
+            'types': ['locality', 'political']
+        }]
+        mocked_gmaps.Client.return_value = gmaps_client
         data = {'last_location': {'lat':1, 'lng': 2}}
         response = self.client.put(self.url, data=data, format='json')
         user = User.objects.get(id=self.user.id)
         assert 200 == response.status_code
         assert 2 == user.last_location.x
         assert 1 == user.last_location.y
+        assert 'Sesame Street, 0' == user.address
 
-    def test_update_location_overrides_old_location(self):
+    @patch('src.core_auth.serializers.googlemaps')
+    def test_update_location_overrides_old_location(self, mocked_gmaps):
+        gmaps_client = Mock()
+        gmaps_client.reverse_geocode.return_value = [{
+            'formatted_address': 'Sesame Street, 0',
+            'types': ['locality', 'political']
+        }]
+        mocked_gmaps.Client.return_value = gmaps_client
         self.user.last_location = GEOSGeometry('POINT (2 1)')
         self.user.save()
         data = {'last_location': {'lng': 1, 'lat': 2}}
@@ -505,15 +521,38 @@ class UpdateLocationTests(APITestCase):
         assert 200 == response.status_code
         assert 1 == user.last_location.x
         assert 2 == user.last_location.y
+        assert 'Sesame Street, 0' == user.address
 
-    def test_deletes_location_if_none_is_sent(self):
+    @patch('src.core_auth.serializers.googlemaps')
+    def test_deletes_location_if_none_is_sent(self, mocked_gmaps):
+        gmaps_client = Mock()
+        mocked_gmaps.Client.return_value = gmaps_client
         self.user.last_location = GEOSGeometry('POINT (2 1)')
         self.user.save()
         data = {'last_location': None}
         response = self.client.put(self.url, data=data, format='json')
         user = User.objects.get(id=self.user.id)
+
+        gmaps_client.assert_not_called()
         assert 200 == response.status_code
         assert user.last_location is None
+        assert user.address == None
+
+    @patch('src.core_auth.serializers.googlemaps')
+    def test_sets_address_to_none_if_no_address_is_not_provided(self, mocked_gmaps):
+        gmaps_client = Mock()
+        gmaps_client.reverse_geocode.return_value = []
+        mocked_gmaps.Client.return_value = gmaps_client
+        self.user.last_location = GEOSGeometry('POINT (2 1)')
+        self.user.save()
+        data = {'last_location': {'lng': 1, 'lat': 2}}
+        response = self.client.put(self.url, data=data, format='json')
+        user = User.objects.get(id=self.user.id)
+        assert 200 == response.status_code
+        assert 1 == user.last_location.x
+        assert 2 == user.last_location.y
+        assert user.address is None
+
 
     def test_returns_400_for_incorrect_data(self):
         data = {'last_location': {'lrg': 1, 'lat': 2}}

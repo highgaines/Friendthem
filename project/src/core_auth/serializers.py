@@ -1,4 +1,7 @@
+import googlemaps
+
 from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from oauth2_provider.models import Application
@@ -194,6 +197,26 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('last_location',)
+
+    def update(self, instance, validated_data):
+        location = self.validated_data['last_location']
+        address = None
+
+        if location is not None and instance.last_location != location:
+            gmaps = googlemaps.Client(settings.GOOGLE_MAPS_API_KEY)
+            address_data = gmaps.reverse_geocode((location.y, location.x))
+            formatted = [
+                x['formatted_address'] for x in address_data
+                if 'locality' in x.get('types', [])
+            ]
+            if formatted:
+                address = formatted[0]
+        self.instance.last_location = location
+        self.instance.address = address
+
+        instance.save()
+        return instance
+
 
 class TutorialSerializer(serializers.ModelSerializer):
     class Meta:

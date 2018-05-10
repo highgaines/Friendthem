@@ -75,6 +75,11 @@ def social_profile(backend, response, details, user, social, *args, **kwargs):
         username = response.get('screen_name')
     elif backend.name == 'linkedin-oauth2':
         username = details.get('fullname')
+        profile_url = details.get('public-profile-url')
+        if profile_url:
+            profile_url.split('?')[0]
+            social.extra_data.update({'profile_url': url})
+
     elif backend.name == 'facebook':
         username = response.get('name')
         update_user_profile_from_facebook(user, response)

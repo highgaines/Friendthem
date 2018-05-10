@@ -102,6 +102,7 @@ class UserSerializer(serializers.ModelSerializer):
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True, read_only=True)
     last_location = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -111,7 +112,7 @@ class UserSerializer(serializers.ModelSerializer):
             'picture', 'social_profiles', 'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email','ghost_mode',
             'employer', 'age_range', 'bio', 'pictures', 'last_location',
-            'notifications', 'email_is_private', 'phone_is_private',
+            'address', 'notifications', 'email_is_private', 'phone_is_private',
             'is_random_email', 'tutorial_complete', 'invite_tutorial',
             'connection_tutorial',
         )
@@ -135,6 +136,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_last_location(self, obj):
         if (not obj.ghost_mode) and obj.last_location:
             return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
+
+    def get_address(self, obj):
+        if (not obj.ghost_mode):
+            return obj.address
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -175,6 +180,7 @@ class TokenSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     last_location = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -183,12 +189,16 @@ class ProfileSerializer(serializers.ModelSerializer):
             'phone_number', 'age', 'personal_email', 'picture',
             'first_name', 'last_name', 'ghost_mode', 'notifications',
             'employer', 'age_range', 'bio',
-            'email_is_private', 'phone_is_private', 'last_location',
+            'email_is_private', 'phone_is_private', 'last_location', 'address',
         )
 
     def get_last_location(self, obj):
         if (not obj.ghost_mode) and obj.last_location:
             return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
+
+    def get_address(self, obj):
+        if (not obj.ghost_mode):
+            return obj.address
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -228,6 +238,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
     phone_number = serializers.SerializerMethodField()
     personal_email = serializers.SerializerMethodField()
     last_location = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
     social_profiles = SocialProfileSerializer(read_only=True, many=True, source='social_auth')
     pictures = PictureSerializer(many=True)
 
@@ -239,7 +250,7 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
             'hobbies', 'hometown', 'occupation',
             'phone_number', 'age', 'personal_email',
             'employer', 'age_range', 'bio',
-            'last_location',
+            'last_location', 'address'
         )
 
     def get_phone_number(self, obj):
@@ -255,6 +266,10 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
         if (not obj.ghost_mode) and obj.last_location:
             return {'lng': obj.last_location.x, 'lat': obj.last_location.y}
 
+    def get_address(self, obj):
+        if (not obj.ghost_mode):
+            return obj.address
+
 
 class NearbyUsersSerializer(RetrieveUserSerializer):
     distance = serializers.SerializerMethodField()
@@ -268,9 +283,10 @@ class NearbyUsersSerializer(RetrieveUserSerializer):
         fields = (
             'id', 'first_name', 'last_name', 'featured',
             'picture', 'hobbies', 'social_profiles', 'pictures',
-            'last_location', 'distance', 'connection_percentage',
-            'employer', 'age_range', 'bio', 'hometown',
-            'phone_number', 'personal_email', 'category'
+            'last_location', 'address', 'distance',
+            'connection_percentage', 'employer', 'age_range',
+            'bio', 'hometown', 'phone_number', 'personal_email',
+            'category'
         )
 
     def get_connection_percentage(self, obj):

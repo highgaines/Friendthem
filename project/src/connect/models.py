@@ -4,6 +4,7 @@ from django.db import models
 class Connection(models.Model):
     FACEBOOK = 'facebook'
     INSTAGRAM = 'instagram'
+    LINKEDIN = 'linkedin'
     TWITTER = 'twitter'
     YOUTUBE = 'youtube'
     SNAPCHAT = 'snapchat'
@@ -11,6 +12,7 @@ class Connection(models.Model):
     PROVIDER_CHOICES = (
         (FACEBOOK, 'Facebook'),
         (INSTAGRAM, 'Instagram'),
+        (INSTAGRAM, 'Linkedin'),
         (YOUTUBE, 'Youtube'),
         (TWITTER, 'Twitter'),
         (SNAPCHAT, 'Snapchat'),

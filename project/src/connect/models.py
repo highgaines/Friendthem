@@ -12,7 +12,7 @@ class Connection(models.Model):
     PROVIDER_CHOICES = (
         (FACEBOOK, 'Facebook'),
         (INSTAGRAM, 'Instagram'),
-        (INSTAGRAM, 'Linkedin'),
+        (LINKEDIN, 'Linkedin'),
         (YOUTUBE, 'Youtube'),
         (TWITTER, 'Twitter'),
         (SNAPCHAT, 'Snapchat'),

@@ -14,7 +14,6 @@ class Command(BaseCommand):
             #instagram_connect = InstagramConnect(user)
             fb_connect = FacebookConnect(user)
             existing_friends = fb_connect.get_existing_friends()
-            import ipdb; ipdb.set_trace()
 
             if not any(i.user_id == 4 or i.user_id == 5 for i in existing_friends):
                 self.delete_existing_social_auth_and_connections()

@@ -70,7 +70,7 @@ class TwitterConnectTestCase(TestCase):
         connection = connect.connect(self.other_user)
         assert connection is True
         api_object.CreateFriendship.assert_called_once_with(
-            user_id=self.other_social_auth.uid, follow=True
+            user_id=self.other_social_auth.uid, follow=False
         )
 
     @patch('src.connect.services.twitter.twitter')
@@ -85,7 +85,7 @@ class TwitterConnectTestCase(TestCase):
         connection = connect.connect(self.other_user)
         assert connection is False
         api_object.CreateFriendship.assert_called_once_with(
-            user_id=self.other_social_auth.uid, follow=True
+            user_id=self.other_social_auth.uid, follow=False
         )
 
     @patch('src.connect.services.twitter.twitter')
@@ -457,6 +457,7 @@ class YoutubeConnectTestCase(TestCase):
 
         assert connections == []
         assert 0 == Connection.objects.count()
+
 
 class FacebookConnectTestCase(TestCase):
     def setUp(self):

@@ -29,8 +29,7 @@ class InstagramFeed(object):
             params={'access_token': self.access_token}
         )
         content = response.json()
-
-        return [self.format_data(d) for d in content['data']]
+        return [self.format_data(d) for d in content.get('data', [])]
 
     @staticmethod
     def format_data(item):
@@ -58,7 +57,10 @@ class FacebookFeed(object):
         except (KeyError, ObjectDoesNotExist):
             raise CredentialsNotFound(self.provider, user)
 
-        return facebook.GraphAPI(access_token)
+        return facebook.GraphAPI(
+            access_token,
+            version=settings.SOCIAL_AUTH_FACEBOOK_API_VERSION
+        )
 
     def get_feed(self, other_user):
         try:
@@ -77,10 +79,12 @@ class FacebookFeed(object):
     def format_data(self, item):
         return {
             'img_url': self.get_hires_picture(item),
-            'num_likes': item['likes']['summary']['total_count'],
+            'num_likes': item.get('likes',{}).get('summary', {}).get(
+                'total_count', 0
+            ),
             'description': item.get('name') or item.get('message'),
             'date_posted': int(maya.parse(item['created_time']).epoch),
-            'type': item['status_type'],
+            'type': item.get('status_type'),
             'provider': 'facebook',
         }
 

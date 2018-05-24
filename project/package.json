@@ -1,0 +1,23 @@
+{
+  "name": "friend-then-api-jsutils",
+  "version": "1.0.0",
+  "description": "Javascript utils for friendthem API redirect pages.",
+  "main": "index.js",
+  "dependencies": {
+    "device-uuid": "^1.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simplefractal/friend-them-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/simplefractal/friend-them-api/issues"
+  },
+  "homepage": "https://github.com/simplefractal/friend-them-api#readme"
+}

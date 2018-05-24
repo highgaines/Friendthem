@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-# Create your models here.
 class Connection(models.Model):
     FACEBOOK = 'facebook'
     INSTAGRAM = 'instagram'
+    LINKEDIN = 'linkedin'
     TWITTER = 'twitter'
     YOUTUBE = 'youtube'
     SNAPCHAT = 'snapchat'
@@ -12,6 +12,7 @@ class Connection(models.Model):
     PROVIDER_CHOICES = (
         (FACEBOOK, 'Facebook'),
         (INSTAGRAM, 'Instagram'),
+        (LINKEDIN, 'Linkedin'),
         (YOUTUBE, 'Youtube'),
         (TWITTER, 'Twitter'),
         (SNAPCHAT, 'Snapchat'),

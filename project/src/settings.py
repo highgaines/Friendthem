@@ -43,13 +43,17 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
+    'django_extensions',
     'phonenumber_field',
     'mapwidgets',
+    'rangefilter',
     'src.core_auth',
     'src.connect',
     'src.feed',
     'src.notifications',
     'src.pictures',
+    'src.invite',
+    'src.competition',
 ]
 
 MIDDLEWARE = [
@@ -151,12 +155,21 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.child('static')
-STATICFILES_STORAGE = config('STATICFILES_STORAGE', default='whitenoise.django.GzipManifestStaticFilesStorage')
+STATICFILES_STORAGE = config('STATICFILES_STORAGE', default='django.contrib.staticfiles.storage.StaticFilesStorage')
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'npm.finders.NpmFinder',
+]
 
 # configuring media
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600 * 24 * 365,
+}
 
 LOGIN_REDIRECT_URL = '/redirect_to_app/'
 SOCIAL_AUTH_USER_FIELDS = ['email',]
@@ -169,7 +182,7 @@ SOCIAL_AUTH_PIPELINE = [
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.social_auth.associate_by_email',
-    'social_core.pipeline.user.create_user',
+    'src.core_auth.pipelines.create_user',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
@@ -184,8 +197,9 @@ SOCIAL_AUTH_FACEBOOK_KEY = config('FACEBOOK_KEY')
 SOCIAL_AUTH_FACEBOOK_SECRET = config('FACEBOOK_SECRET')
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
-    'fields': 'id,email,name,hometown,work,age_range,about'
+    'fields': 'id,email,name,hometown,work,age_range,about,picture.height(2048)'
 }
+SOCIAL_AUTH_FACEBOOK_API_VERSION = '2.9'
 
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH2_KEY')
@@ -213,7 +227,8 @@ SOCIAL_AUTH_INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'relationships follower_l
 
 SOCIAL_AUTH_LINKEDIN_OAUTH2_KEY = config('LINKEDIN_KEY')
 SOCIAL_AUTH_LINKEDIN_OAUTH2_SECRET = config('LINKEDIN_SECRET')
-SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_emailaddress,w_share']
+SOCIAL_AUTH_LINKEDIN_OAUTH2_SCOPE = ['r_basicprofile,r_emailaddress,w_share']
+SOCIAL_AUTH_LINKEDIN_OAUTH2_FIELD_SELECTORS = ['public-profile-url']
 
 SOCIAL_AUTH_TWITTER_KEY = config('TWITTER_KEY')
 SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
@@ -221,15 +236,24 @@ SOCIAL_AUTH_TWITTER_SECRET = config('TWITTER_SECRET')
 ONESIGNAL_APP_ID = config('ONESIGNAL_APP_ID')
 ONESIGNAL_APP_KEY = config('ONESIGNAL_APP_KEY')
 
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+
 MAP_WIDGETS = {
     'GooglePointFieldWidget': (
         ('zoom', 12),
         ('mapCenterLocationName', 'new york'),
     ),
-    'GOOGLE_MAP_API_KEY': config('GOOGLE_MAPS_API_KEY')
+    'GOOGLE_MAP_API_KEY': GOOGLE_MAPS_API_KEY,
 }
 
 GDAL_LIBRARY_PATH = config('GDAL_LIBRARY_PATH', default='')
 GEOS_LIBRARY_PATH = config('GEOS_LIBRARY_PATH', default='')
 
 INSTALLED_APPS += ('raven.contrib.django.raven_compat', )
+
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_KEY = config('AWS_SECRET_KEY')
+AWS_S3_BUCKET_KEY = config('AWS_S3_BUCKET_KEY')
+
+STORE_URL = 'http://onelink.to/7rmz9h'
+APP_URL = 'FriendThem://'

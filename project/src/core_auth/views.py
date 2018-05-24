@@ -1,12 +1,12 @@
-import json
 from copy import copy
+import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import D
+from django.http import HttpResponse
 
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.settings import oauth2_settings
@@ -15,13 +15,14 @@ from oauth2_provider.views.mixins import OAuthLibMixin
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
-from src.core_auth.serializers import (UserSerializer, TokenSerializer,
-                                       ProfileSerializer, LocationSerializer,
-                                       NearbyUsersSerializer, SocialProfileSerializer,
-                                       AuthErrorSerializer, ChangePasswordSerializer)
+from src.core_auth.serializers import (AuthErrorSerializer, ChangePasswordSerializer,
+                                       LocationSerializer, NearbyUsersSerializer,
+                                       ProfileSerializer, SocialProfileSerializer,
+                                       TutorialSerializer, TokenSerializer,
+                                       UserSerializer)
 
 
 User = get_user_model()
@@ -88,9 +89,23 @@ class UpdateProfileView(UpdateAPIView):
         return self.request.user
 
 
-class CreateSocialProfileView(CreateAPIView):
+class UpdateTutorialSettingsView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TutorialSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
+class SocialProfileViewSet(ModelViewSet):
     serializer_class = SocialProfileSerializer
     permission_classes = [IsAuthenticated]
+
+    lookup_url_kwarg = 'provider'
+    lookup_field = 'provider'
+
+    def get_queryset(self):
+        return self.request.user.social_auth.all()
 
 
 class UpdateLocationView(UpdateAPIView):
@@ -107,7 +122,7 @@ class NearbyUsersView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        miles = self.request.GET.get('miles', 200)
+        miles = self.request.GET.get('miles', 100)
         distance = D(mi=miles)
 
         if user.last_location:
@@ -120,10 +135,16 @@ class NearbyUsersView(ListAPIView):
             queryset = User.objects.filter(featured=True)
             last_location = GEOSGeometry('POINT (0 0)', srid=4326)
 
-
-        return queryset.annotate(
+        queryset = queryset.annotate(
             distance=Distance('last_location', last_location)
-        ).exclude(id=self.request.user.id)
+        ).exclude(
+            id=self.request.user.id
+        ).with_connection_percentage_for_user(user)
+        return queryset.extra(
+            select={'picture_is_null': 'picture is NULL'},
+            order_by=['picture_is_null',],
+        )
+
 
 
 class ChangePasswordView(APIView):
@@ -141,21 +162,21 @@ class ChangePasswordView(APIView):
         return Response(serializer.data)
 
 
-
 def redirect_user_to_app(request):
-    location = 'FriendThem://'
     response = HttpResponse('', status=302)
-    response['Location'] = location
+    response['Location'] = settings.APP_URL
 
     return response
 
-register_user = RegisterUserView.as_view()
-user_details = UserDetailView.as_view()
-tokens_list = TokensViewSet.as_view({'get': 'list'})
-tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
-errors_list = AuthErrorView.as_view()
-update_profile = UpdateProfileView.as_view()
-social_profile = CreateSocialProfileView.as_view()
-update_location = UpdateLocationView.as_view()
-nearby_users = NearbyUsersView.as_view()
 change_password = ChangePasswordView.as_view()
+errors_list = AuthErrorView.as_view()
+location_update = UpdateLocationView.as_view()
+nearby_users = NearbyUsersView.as_view()
+profile_update = UpdateProfileView.as_view()
+register_user = RegisterUserView.as_view()
+social_profile_create = SocialProfileViewSet.as_view({'post': 'create'})
+social_profile_update_delete = SocialProfileViewSet.as_view({'put': 'update', 'delete': 'destroy'})
+tokens_get = TokensViewSet.as_view({'get': 'retrieve'})
+tokens_list = TokensViewSet.as_view({'get': 'list'})
+tutorial_settings = UpdateTutorialSettingsView.as_view()
+user_details = UserDetailView.as_view()

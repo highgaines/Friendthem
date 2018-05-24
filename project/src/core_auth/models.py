@@ -13,7 +13,69 @@ from phonenumber_field.modelfields import PhoneNumberField
 from src.pictures.services import FacebookProfilePicture
 from src.pictures.exceptions import ProfilePicturesAlbumNotFound
 
+class UserQuerySet(models.QuerySet):
+    SENT = 1
+    RECEIVED = 2
+    BOTH = 3
+    NOTHING = 0
+    CATEGORY_CHOICES_MAP = {
+        SENT: 'sent',
+        RECEIVED: 'received',
+        BOTH: 'both',
+        NOTHING: 'nothing',
+    }
+
+    def with_connection_percentage_for_user(self, user):
+        user_social_count = user.social_auth.count()
+        qs = self.exclude(id=user.id).annotate(
+            sent_connections_count=models.Count(
+                'connection_user_2', filter=models.Q(connection_user_2__user_1=user)
+            ),
+            received_connections_count=models.Count(
+                'connection_user_1', filter=models.Q(connection_user_1__user_2=user)
+            ),
+            category=models.Case(
+                models.When(
+                    models.Q(sent_connections_count__gte=1) & \
+                    models.Q(received_connections_count=0), then=UserQuerySet.SENT
+                ),
+                models.When(
+                    models.Q(received_connections_count__gte=1) & \
+                    models.Q(sent_connections_count=0), then=UserQuerySet.RECEIVED
+                ),
+                models.When(
+                    models.Q(sent_connections_count__gte=1) & \
+                    models.Q(received_connections_count__gte=1), then=UserQuerySet.BOTH
+                ),
+                default=UserQuerySet.NOTHING,
+                output_field=models.CharField(max_length=10)
+            )
+        ).distinct()
+        qs = qs.annotate(
+            social_count=models.Count('social_auth'),
+            connection_percentage=models.Case(
+                models.When(
+                    category=UserQuerySet.BOTH,
+                    then=(
+                        models.F('received_connections_count') + \
+                        models.F('sent_connections_count')
+                    ) * 100. / (models.F('social_count') + user_social_count)
+                ),
+                models.When(
+                    category=UserQuerySet.RECEIVED,
+                    then=models.F('received_connections_count') * 100. / user_social_count),
+                models.When(
+                    category=UserQuerySet.SENT,
+                    then=models.F('sent_connections_count') * 100. / models.F('social_count')),
+                default=0,
+                output_field=models.IntegerField()
+            )
+          )
+
+        return qs
+
 class UserManager(BaseUserManager):
+
     def create_user(self, email, password=None, *args, **kwargs):
         """
         Creates and saves a User with the given email, date of
@@ -24,6 +86,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
+            **kwargs
         )
 
         user.set_password(password)
@@ -65,23 +128,29 @@ class User(AbstractUser):
     ghost_mode = models.BooleanField(default=False)
     notifications = models.BooleanField(default=True)
 
+    tutorial_complete = models.BooleanField(default=False)
+    invite_tutorial = models.BooleanField(default=False)
+    connection_tutorial = models.BooleanField(default=False)
+
     last_location = PointField(
         geography=True, blank=True, null=True,
         help_text="Represented as (longitude, latitude)"
     )
+    address = models.CharField(max_length=256, blank=True, null=True)
 
     featured = models.BooleanField(default=False)
     phone_is_private = models.BooleanField(default=False)
     email_is_private = models.BooleanField(default=False)
+    is_random_email = models.BooleanField(default=False)
 
-    objects = UserManager()
+    objects = UserManager.from_queryset(UserQuerySet)()
 
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def save(self, *args, **kwargs):
-        if not self.personal_email:
+        if not self.personal_email and not self.is_random_email:
             self.personal_email = self.email
         return super(User, self).save(*args, **kwargs)
 

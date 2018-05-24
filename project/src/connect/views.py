@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_list_or_404
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
+
+from src.core_auth.models import UserQuerySet
 from src.connect.serializers import ConnectionSerializer, ConnectedUserSerializer
 from src.connect.models import Connection
 
@@ -26,11 +28,9 @@ class ConnectedUsersAPIView(ListAPIView):
     serializer_class = ConnectedUserSerializer
 
     def get_queryset(self):
-        connected_user_ids = Connection.objects.filter(
-            user_1=self.request.user
-        ).values_list('user_2', flat=True).distinct()
-
-        return User.objects.filter(id__in=connected_user_ids)
+        return User.objects.with_connection_percentage_for_user(
+            self.request.user
+        ).exclude(category=UserQuerySet.NOTHING)
 
 connection_view = ConnectionAPIView.as_view()
 connected_users_view = ConnectedUsersAPIView.as_view()

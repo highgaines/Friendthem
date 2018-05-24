@@ -7,7 +7,7 @@ from src.connect.services.facebook import FacebookConnect
 from src.connect.services.instagram import InstagramConnect
 
 class Command(BaseCommand):
-    help = 'python project/manage.py clear_user_social_account_connections'
+    help = 'Resets connections and social profiles for demo users.'
 
     def handle(self, *args, **options):
         for user in User.objects.filter(id__in=[4, 5]):
@@ -22,4 +22,3 @@ class Command(BaseCommand):
     def delete_existing_social_auth_and_connections(self):
         Connection.objects.filter(user_1_id__in=[4, 5], user_2_id__in=[4, 5]).delete()
         UserSocialAuth.objects.filter(user_id__in=[4, 5]).delete()
-

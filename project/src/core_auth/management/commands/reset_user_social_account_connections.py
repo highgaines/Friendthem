@@ -23,3 +23,4 @@ class Command(BaseCommand):
     def delete_existing_social_auth_and_connections(self):
         Connection.objects.filter(user_1_id__in=[4, 5], user_2_id__in=[4, 5]).delete()
         UserSocialAuth.objects.filter(user_id__in=[4, 5]).delete()
+

@@ -59,3 +59,4 @@ class FacebookConnect(DummyConnect):
                 break
 
         return UserSocialAuth.objects.filter(uid__in=friends, provider=self.provider)
+

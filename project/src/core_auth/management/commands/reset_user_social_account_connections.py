@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'python project/manage.py clear_user_social_account_connections'
 
     def handle(self, *args, **options):
-        for user in User.objects.filter(id__in=[1, 5]):
+        for user in User.objects.filter(id__in=[4, 5]):
             #instagram_connect = InstagramConnect(user)
             fb_connect = FacebookConnect(user)
             existing_friends = fb_connect.get_existing_friends()
